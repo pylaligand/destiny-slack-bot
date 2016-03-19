@@ -1,0 +1,7 @@
+name: destiny-slack-bot
+author: P.Y. Laligand
+version: 0.0.1
+description: A Slack bot exposing various Destiny-related utilities.
+dependencies:
+  shelf: ^0.6.5
+  shelf_route: ^0.14.1
