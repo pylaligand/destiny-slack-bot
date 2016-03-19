@@ -13,7 +13,7 @@ void main() {
 
   final theRouter = router()
     ..get('/', (_) => new shelf.Response.ok('This is the Destiny bot!'))
-    ..get('/trials', (_) => new shelf.Response.ok('Coming soon!'));
+    ..post('/trials', (_) => new shelf.Response.ok('Coming soon!'));
 
   final handler = const shelf.Pipeline()
       .addMiddleware(shelf.logRequests())
