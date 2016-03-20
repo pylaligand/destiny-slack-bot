@@ -25,7 +25,7 @@ void main() {
 
   final handler = const shelf.Pipeline()
       .addMiddleware(shelf.logRequests())
-      .addMiddleware(SlackMiddleware.get('314'))
+      .addMiddleware(SlackMiddleware.get(slackToken))
       .addHandler(commandRouter.handler);
 
   runZoned(() {
