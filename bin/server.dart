@@ -7,17 +7,26 @@ import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as io;
 import 'package:shelf_route/shelf_route.dart';
 
-void main() {
-  var portEnv = Platform.environment['PORT'];
-  var port = portEnv == null ? 9999 : int.parse(portEnv);
+import '../lib/slack_middleware.dart';
+import '../lib/trials_handler.dart';
 
-  final theRouter = router()
+void main() {
+  final portEnv = Platform.environment['PORT'];
+  final port = portEnv == null ? 9999 : int.parse(portEnv);
+
+  final slackToken = Platform.environment['SLACK_TEAM_TOKEN'];
+  if (slackToken == null) {
+    throw 'Slack token not specified!';
+  }
+
+  final commandRouter = router()
     ..get('/', (_) => new shelf.Response.ok('This is the Destiny bot!'))
-    ..post('/trials', (_) => new shelf.Response.ok('Coming soon!'));
+    ..addAll(new TrialsHandler());
 
   final handler = const shelf.Pipeline()
       .addMiddleware(shelf.logRequests())
-      .addHandler(theRouter.handler);
+      .addMiddleware(SlackMiddleware.get('314'))
+      .addHandler(commandRouter.handler);
 
   runZoned(() {
     print('Serving on $port');
