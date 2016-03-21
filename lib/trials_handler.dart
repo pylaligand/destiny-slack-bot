@@ -59,7 +59,7 @@ class TrialsHandler extends Routeable {
     // the user is on Xbox.
     final list = guardians.map((g) {
       final blanks = width - g.name.length;
-      return '<https://my.trials.report/ps/${g.name}|${g.name}>${''.padRight(blanks)}  ${g.elo.toString().padLeft(4)}  ${g.kd}';
+      return '<https://my.trials.report/ps/${g.name}|${g.name}>${''.padRight(blanks)}  ${g.elo.toString().padLeft(4)}  ${g.kd.toString().padRight(4, '0')}';
     }).join('\n');
     return '```$list```';
   }
