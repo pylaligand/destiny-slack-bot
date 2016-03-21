@@ -43,10 +43,12 @@ class TrialsHandler extends Routeable {
     }
     guardians.forEach((g) => print(g));
 
-    final response = new Map();
-    response['response_type'] = 'in_channel';
-    response['text'] = _formatReport(guardians);
-    return new shelf.Response.ok(JSON.encode(response));
+    final json = new Map();
+    json['response_type'] = 'in_channel';
+    json['text'] = _formatReport(guardians);
+    final body = JSON.encode(json);
+    final headers = {'content-type': 'application/json'};
+    return new shelf.Response.ok(body, headers: headers);
   }
 
   /// Returns the formatted guardian list for display in a bot message.
