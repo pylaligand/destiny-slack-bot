@@ -30,7 +30,7 @@ class GuardianGgClient {
     return data.map((Map guardian) {
       final destinyId = guardian['membershipId'];
       final name = guardian['name'];
-      final elo = guardian['elo'].truncate();
+      final elo = guardian['elo'].round();
       final kd = num
           .parse((guardian['kills'] / guardian['deaths']).toStringAsFixed(2));
       return new Guardian(destinyId, name, elo, kd);
