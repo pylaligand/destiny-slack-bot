@@ -5,6 +5,10 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+import 'bungie_types.dart';
+
+export 'bungie_types.dart';
+
 /// Base URL for API calls.
 const _BASE = 'http://www.bungie.net/Platform';
 
@@ -30,27 +34,16 @@ const _SUBCLASSES = const {
   }
 };
 
-/// Represents a player's character.
-class Character {
-  final String id;
-  final String clazz;
-
-  Character(this.id, this.clazz);
-
-  @override
-  String toString() => 'Character{$id, $clazz}';
-}
-
 /// Client for the Bungie REST API.
 class BungieClient {
   final String _apiKey;
 
   BungieClient(this._apiKey);
 
-  /// Returns the Destiny id ("membershipId") of the player named [gamertag].
+  /// Returns the Destiny id of the player named [gamertag].
   ///
-  /// Will look up on XNL or PSN depending on [onXbox].
-  Future<String> getDestinyId(String gamertag, bool onXbox) async {
+  /// Will look up on XBL or PSN depending on [onXbox].
+  Future<DestinyId> getDestinyId(String gamertag, bool onXbox) async {
     final type = onXbox ? '1' : '2';
     final url = '$_BASE/Destiny/SearchDestinyPlayer/$type/$gamertag';
     final data = await _getJson(url);
@@ -60,14 +53,12 @@ class BungieClient {
         data['Response'][0] == null) {
       return null;
     }
-    return data['Response'][0]['membershipId'];
+    return new DestinyId(onXbox, data['Response'][0]['membershipId']);
   }
 
   /// Returns the last character the given player played with.
-  Future<Character> getLastPlayedCharacter(
-      String destinyId, bool onXbox) async {
-    final type = onXbox ? '1' : '2';
-    final url = '$_BASE/User/GetBungieAccount/$destinyId/$type/';
+  Future<Character> getLastPlayedCharacter(Id id) async {
+    final url = '$_BASE/User/GetBungieAccount/${id.token}/${id.type}/';
     final data = await _getJson(url);
     if (data['ErrorCode'] != 1 ||
         data['Response'] == null ||
@@ -87,15 +78,16 @@ class BungieClient {
           : character;
     });
     return new Character(
-        characterData['characterId'], characterData['classHash'].toString());
+        characterData['characterId'],
+        characterData['classHash'].toString(),
+        DateTime.parse(characterData['dateLastPlayed']));
   }
 
   /// Returns the equipped subclass for the given character.
-  Future<String> getEquippedSubclass(String destinyId, bool onXbox,
-      String characterId, String characterClass) async {
-    final type = onXbox ? '1' : '2';
+  Future<String> getEquippedSubclass(
+      Id id, String characterId, String characterClass) async {
     final url =
-        '$_BASE/Destiny/$type/Account/$destinyId/Character/$characterId/Inventory/Summary/';
+        '$_BASE/Destiny/${id.type}/Account/${id.token}/Character/${characterId}/Inventory/Summary/';
     final data = await _getJson(url);
     if (data['ErrorCode'] != 1 ||
         data['Response'] == null ||
@@ -109,6 +101,40 @@ class BungieClient {
         .map((item) => item['itemHash'].toString())
         .firstWhere((hash) => subclasses.containsKey(hash));
     return subclassHash != null ? subclasses[subclassHash] : null;
+  }
+
+  /// Returns the list of members on XBL or PSN for the given clan.
+  Future<List<ClanMember>> getClanRoster(String clanId, bool onXbox) async {
+    int pageIndex = 0;
+    final members = <ClanMember>[];
+    while (true) {
+      final data = await _getClanRosterPage(clanId, onXbox, pageIndex++);
+      if (data['ErrorCode'] != 1 ||
+          data['Response'] == null ||
+          data['Response']['results'] == null ||
+          data['Response']['results'].isEmpty) {
+        continue;
+      }
+      members.addAll(data['Response']['results'].map((userData) {
+        final user = userData['user'];
+        final platformKey = onXbox ? 'xboxDisplayName' : 'psnDisplayName';
+        final id = new BungieId(user['membershipId']);
+        return new ClanMember(
+            user['displayName'], id, user[platformKey], onXbox);
+      }));
+      if (!data['Response']['hasMore']) {
+        break;
+      }
+    }
+    return members;
+  }
+
+  /// Fetches a single page of clan roster.
+  dynamic _getClanRosterPage(String clanId, bool onXbox, int pageIndex) async {
+    final type = onXbox ? '1' : '2';
+    final url =
+        '$_BASE/Group/${clanId}/Members/?currentPage=${pageIndex}&platformType=${type}';
+    return await _getJson(url);
   }
 
   dynamic _getJson(String url) async {
