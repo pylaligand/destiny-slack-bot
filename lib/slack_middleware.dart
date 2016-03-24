@@ -5,7 +5,7 @@ import 'package:shelf/shelf.dart' as shelf;
 /// Verifies that requests come from Slack and makes the content of these
 /// requests more accessible to handlers.
 class SlackMiddleware {
-  static shelf.Middleware get(String token) => (shelf.Handler handler) {
+  static shelf.Middleware get(List<String> tokens) => (shelf.Handler handler) {
         return (shelf.Request request) async {
           final contentType = request.headers['content-type'];
           if (contentType != 'application/x-www-form-urlencoded') {
@@ -15,7 +15,7 @@ class SlackMiddleware {
           final body = await request.readAsString();
           final params = Uri.splitQueryString(Uri.decodeFull(body));
           final requestToken = params['token'];
-          if (requestToken != token) {
+          if (!tokens.contains(requestToken)) {
             print('Invalid token: $requestToken');
             return new shelf.Response.forbidden('Invalid token');
           }

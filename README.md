@@ -18,7 +18,8 @@ heroku config:set PARAMETER_NAME=abcde01234ghijk56789
 ```
 
 Here are the required parameters:
-- *SLACK_TEAM_TOKEN*: the Slack team's [validation token](https://api.slack.com/slash-commands#triggering_a_command)
+- *SLACK_VALIDATION_TOKENS*: the [validation tokens](https://api.slack.com/slash-commands#triggering_a_command)
+for the Slack custom integrations
 - *BUNGIE_API_KEY*: needed to talk to the Bungie API; register [here](https://www.bungie.net/en/User/API)
 - *BUNGIE_CLAN_ID*: your clan ID, easily found when navigating to your clan
 page on bungie.net, which has the form `https://www.bungie.net/en/Clan/Forum/{clan_id}`
