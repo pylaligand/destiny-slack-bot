@@ -43,7 +43,9 @@ class OnlineHandler extends Routeable {
     }));
     print('${nowPlaying.length} online');
     nowPlaying.forEach((member) => print(' - $member'));
-    final names = nowPlaying.map((member) => member.gamertag);
+    final List<String> names =
+        nowPlaying.map((member) => member.gamertag).toList();
+    names.sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
     final content = '```${names.join('\n')}```';
     return createResponse(content);
   }
