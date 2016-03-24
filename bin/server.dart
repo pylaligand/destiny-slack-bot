@@ -25,7 +25,7 @@ void main() {
   final portEnv = Platform.environment['PORT'];
   final port = portEnv == null ? 9999 : int.parse(portEnv);
 
-  final slackToken = _getConfigValue('SLACK_TEAM_TOKEN');
+  final slackTokens = _getConfigValue('SLACK_VALIDATION_TOKENS').split(',');
   final bungieApiKey = _getConfigValue('BUNGIE_API_KEY');
   final bungieClanId = _getConfigValue('BUNGIE_CLAN_ID');
 
@@ -37,7 +37,7 @@ void main() {
   final handler = const shelf.Pipeline()
       .addMiddleware(shelf.logRequests())
       .addMiddleware(BungieMiddleWare.get(bungieApiKey))
-      .addMiddleware(SlackMiddleware.get(slackToken))
+      .addMiddleware(SlackMiddleware.get(slackTokens))
       .addHandler(commandRouter.handler);
 
   runZoned(() {
