@@ -8,6 +8,7 @@ import 'package:shelf/shelf_io.dart' as io;
 import 'package:shelf_route/shelf_route.dart';
 
 import '../lib/bungie_middleware.dart';
+import '../lib/online_handler.dart';
 import '../lib/slack_middleware.dart';
 import '../lib/trials_handler.dart';
 
@@ -26,10 +27,12 @@ void main() {
 
   final slackToken = _getConfigValue('SLACK_TEAM_TOKEN');
   final bungieApiKey = _getConfigValue('BUNGIE_API_KEY');
+  final bungieClanId = _getConfigValue('BUNGIE_CLAN_ID');
 
   final commandRouter = router()
     ..get('/', (_) => new shelf.Response.ok('This is the Destiny bot!'))
-    ..addAll(new TrialsHandler());
+    ..addAll(new TrialsHandler(), path: '/trials')
+    ..addAll(new OnlineHandler(bungieClanId), path: '/online');
 
   final handler = const shelf.Pipeline()
       .addMiddleware(shelf.logRequests())
@@ -38,7 +41,8 @@ void main() {
       .addHandler(commandRouter.handler);
 
   runZoned(() {
-    print('Serving on $port');
+    print('Serving on port $port');
+    printRoutes(commandRouter);
     io.serve(handler, '0.0.0.0', port);
   }, onError: (e, stackTrace) => print('Oh noes! $e $stackTrace'));
 }
