@@ -29,7 +29,7 @@ class OnlineHandler extends Routeable {
     print('@${params['user_name']} viewing online guardians on $option');
     if (option != _OPTION_XBL && option != _OPTION_PSN) {
       print('Invalid platform identifier');
-      return createResponse('Err, that is not a valid platform!',
+      return createTextResponse('Err, that is not a valid platform!',
           private: true);
     }
     final members = await client.getClanRoster(_clanId, option == _OPTION_XBL);
@@ -43,10 +43,16 @@ class OnlineHandler extends Routeable {
     }));
     print('${nowPlaying.length} online');
     nowPlaying.forEach((member) => print(' - $member'));
-    final List<String> names =
-        nowPlaying.map((member) => member.gamertag).toList();
-    names.sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
-    final content = '```${names.join('\n')}```';
-    return createResponse(content);
+    if (nowPlaying.isEmpty) {
+      final text = 'No guardian online';
+      return createAttachmentResponse(
+          {'color': '#ff0000', 'text': text, 'fallback': text});
+    } else {
+      final List<String> names =
+          nowPlaying.map((member) => member.gamertag).toList();
+      names.sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+      final content = '```${names.join('\n')}```';
+      return createTextResponse(content);
+    }
   }
 }

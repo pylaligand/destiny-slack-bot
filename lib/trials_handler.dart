@@ -49,7 +49,7 @@ class TrialsHandler extends Routeable {
     });
     trialsGuardians.forEach((g) => print(g));
 
-    return createResponse(_formatReport(trialsGuardians));
+    return createTextResponse(_formatReport(trialsGuardians));
   }
 
   /// Attempts to fetch the Destiny id of the player identified by [gamertag].
