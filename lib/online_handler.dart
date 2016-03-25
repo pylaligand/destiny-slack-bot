@@ -19,10 +19,10 @@ class OnlineHandler extends Routeable {
 
   @override
   createRoutes(Router router) {
-    router.post('/', _handle);
+    router.post('/', handle);
   }
 
-  Future<shelf.Response> _handle(shelf.Request request) async {
+  Future<shelf.Response> handle(shelf.Request request) async {
     final params = request.context;
     final BungieClient client = params['bungie_client'];
     final option = params['text'];
