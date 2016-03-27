@@ -4,26 +4,22 @@ import 'dart:async';
 
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
-import 'package:shelf_route/shelf_route.dart';
 
 import 'bungie_client.dart';
+import 'slack_command_handler.dart';
 import 'slack_format.dart';
 
 const _OPTION_XBL = 'xbl';
 const _OPTION_PSN = 'psn';
 
 /// Looks up online clan members.
-class OnlineHandler extends Routeable {
+class OnlineHandler extends SlackCommandHandler {
   final log = new Logger('OnlineHandler');
   final String _clanId;
 
   OnlineHandler(this._clanId);
 
   @override
-  createRoutes(Router router) {
-    router.post('/', handle);
-  }
-
   Future<shelf.Response> handle(shelf.Request request) async {
     final params = request.context;
     final BungieClient client = params['bungie_client'];
