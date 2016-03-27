@@ -26,9 +26,12 @@ yet.
 - Online clan members
   - `/online [xbl | psn]`
   - check who is currently online playing Destiny
-- Grimoire
+- Grimoire score
   - `/grimoire [gamertag | @username | nothing]`
   - view a player's grimoire score
+- Grimoire cards
+  - `/card`
+  - shows a random grimoire card
 
 ## Configuration
 
@@ -45,6 +48,23 @@ for the Slack custom integrations
 - `BUNGIE_CLAN_ID`: your clan ID, easily found when navigating to your clan
 page on bungie.net, which has the form
 `https://www.bungie.net/en/Clan/Forum/{clan_id}`
+- `DATABASE_URL`: URI of the PostgreSQL database holding Destiny world data -
+see next section
+
+## Database
+
+The world database is created from the SQLite world database provided in the
+[manifest](http://www.bungie.net/platform/Destiny/Manifest/). It is converted
+to a Postgres database with `tool/create_database`.
+
+A local Postgres instance will be needed for testing, whereas a live instance
+can be set up on [Heroku](https://www.heroku.com/postgres). The local instance
+is provisioned via the creation tool, while the live instance is bootstrapped
+from the local instance with:
+```
+heroku pg:push <local db name> DATABASE_URL --app <your app's name>
+```
+
 
 ## Running locally
 
