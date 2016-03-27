@@ -102,6 +102,4 @@ dynamic _getResponse(
   return JSON.decode(await response.readAsString());
 }
 
-class _MockBungieClient extends Mock implements BungieClient {
-  noSuchMethod(i) => super.noSuchMethod(i);
-}
+class _MockBungieClient extends Mock implements BungieClient {}
