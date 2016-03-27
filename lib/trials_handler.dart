@@ -3,6 +3,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf_route/shelf_route.dart';
 
@@ -12,6 +13,8 @@ import 'slack_format.dart';
 
 /// Handles request for Trials of Osiris information.
 class TrialsHandler extends Routeable {
+  final log = new Logger('TrialsHandler');
+
   @override
   createRoutes(Router router) {
     router.post('/', _handle);
@@ -20,24 +23,24 @@ class TrialsHandler extends Routeable {
   Future<shelf.Response> _handle(shelf.Request request) async {
     final params = request.context;
     final String gamertag = params['text'];
-    print('@${params['user_name']} looking up "$gamertag"');
+    log.info('@${params['user_name']} looking up "$gamertag"');
 
     // Look up the Destiny ID.
     final BungieClient client = params['bungie_client'];
     final destinyId = await _getDestinyId(client, gamertag);
     if (destinyId == null) {
-      print('Player not found');
+      log.warning('Player not found');
       return new shelf.Response.ok(
           'Cannot find player "$gamertag" on XBL or PSN...');
     }
     final onXbox = destinyId.onXbox;
-    print('Found id for "$gamertag": $destinyId (Xbox: ${onXbox})');
+    log.info('Found id for "$gamertag": $destinyId (Xbox: ${onXbox})');
 
     // Get stats from guardian.gg.
     final guardians =
         await new GuardianGgClient().getTrialsStats(destinyId.token);
     if (guardians.isEmpty) {
-      print('No Trials data found');
+      log.warning('No Trials data found');
       return new shelf.Response.ok(
           'Could not find Trials data for "$gamertag"');
     }
@@ -47,7 +50,7 @@ class TrialsHandler extends Routeable {
       final subclass = (await _getLastUsedSubclass(client, id)) ?? 'Unknown';
       trialsGuardians.add(new TrialsGuardian(guardian, subclass));
     });
-    trialsGuardians.forEach((g) => print(g));
+    trialsGuardians.forEach((g) => log.info(g));
 
     return createTextResponse(_formatReport(trialsGuardians));
   }
@@ -71,17 +74,17 @@ class TrialsHandler extends Routeable {
 
   /// Returns the subclass last used by the given player, or null if it could
   /// not be determined.
-  static Future<String> _getLastUsedSubclass(
+  Future<String> _getLastUsedSubclass(
       BungieClient client, DestinyId destinyId) async {
     final character = await client.getLastPlayedCharacter(destinyId);
     if (character == null) {
-      print('Unable to locate character for $destinyId');
+      log.warning('Unable to locate character for $destinyId');
       return null;
     }
     final subclass = await client.getEquippedSubclass(
         destinyId, character.id, character.clazz);
     if (subclass == null) {
-      print(
+      log.warning(
           'Unable to determine subclass for character ${character.id} of $destinyId');
       return null;
     }

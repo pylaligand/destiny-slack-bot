@@ -2,6 +2,7 @@
 
 import 'dart:async';
 
+import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf_route/shelf_route.dart';
 
@@ -13,6 +14,7 @@ const _OPTION_PSN = 'psn';
 
 /// Looks up online clan members.
 class OnlineHandler extends Routeable {
+  final log = new Logger('OnlineHandler');
   final String _clanId;
 
   OnlineHandler(this._clanId);
@@ -26,9 +28,9 @@ class OnlineHandler extends Routeable {
     final params = request.context;
     final BungieClient client = params['bungie_client'];
     final option = params['text'];
-    print('@${params['user_name']} viewing online guardians on $option');
+    log.info('@${params['user_name']} viewing online guardians on $option');
     if (option != _OPTION_XBL && option != _OPTION_PSN) {
-      print('Invalid platform identifier');
+      log.warning('Invalid platform identifier');
       return createTextResponse('Err, that is not a valid platform!',
           private: true);
     }
@@ -41,8 +43,8 @@ class OnlineHandler extends Routeable {
         nowPlaying.add(member);
       }
     }));
-    print('${nowPlaying.length} online');
-    nowPlaying.forEach((member) => print(' - $member'));
+    log.info('${nowPlaying.length} online');
+    nowPlaying.forEach((member) => log.info(' - $member'));
     if (nowPlaying.isEmpty) {
       final text = 'No guardian online';
       return createAttachmentResponse(
