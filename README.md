@@ -1,5 +1,7 @@
 # Destiny bot for Slack
 
+[![Build status](https://travis-ci.org/pylaligand/destiny-slack-bot.svg?branch=master)](https://travis-ci.org/pylaligand/destiny-slack-bot)
+
 ## Commands
 
 - Trials of Osiris
