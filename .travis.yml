@@ -1,0 +1,6 @@
+language: dart
+dart:
+  - stable
+script:
+  - dartanalyzer --fatal-warnings --fatal-hints bin/server.dart lib/*.dart
+  - pub run test
