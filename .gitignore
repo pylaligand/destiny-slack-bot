@@ -1,4 +1,5 @@
 .packages
+.pub
 packages
 build
 pubspec.lock

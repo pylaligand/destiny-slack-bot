@@ -6,7 +6,7 @@ class Character {
   final String clazz;
   final DateTime lastPlayed;
 
-  Character(this.id, this.clazz, this.lastPlayed);
+  const Character(this.id, this.clazz, this.lastPlayed);
 
   @override
   String toString() => 'Character{$id, $clazz}';
@@ -20,7 +20,7 @@ class Id {
   /// The actual id.
   final String token;
 
-  Id(this.type, this.token);
+  const Id(this.type, this.token);
 
   @override
   String toString() => '{$type:$token}';
@@ -28,7 +28,7 @@ class Id {
 
 /// The Destiny id.
 class DestinyId extends Id {
-  DestinyId(bool onXbox, String token) : super(onXbox ? '1' : '2', token);
+  const DestinyId(bool onXbox, String token) : super(onXbox ? '1' : '2', token);
 
   /// Whether the player is on Xbox or Playstation.
   bool get onXbox => type == '1';
@@ -36,7 +36,7 @@ class DestinyId extends Id {
 
 /// The Bungie identifier, independent of gaming platform.
 class BungieId extends Id {
-  BungieId(String token) : super('254', token);
+  const BungieId(String token) : super('254', token);
 }
 
 /// A member of a clan.
@@ -53,7 +53,7 @@ class ClanMember {
   /// Whether the player is on Xbox or Playstation.
   final bool onXbox;
 
-  ClanMember(this.bungieUserName, this.id, this.gamertag, this.onXbox);
+  const ClanMember(this.bungieUserName, this.id, this.gamertag, this.onXbox);
 
   @override
   String toString() => '$bungieUserName[$id]';
