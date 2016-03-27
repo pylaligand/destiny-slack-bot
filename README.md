@@ -2,31 +2,51 @@
 
 [![Build status](https://travis-ci.org/pylaligand/destiny-slack-bot.svg?branch=master)](https://travis-ci.org/pylaligand/destiny-slack-bot)
 
+This is a [Slack](http://www.slack.com) bot for
+[Destiny](https://www.destinythegame.com/) clans. It exposes
+commands to look up various aspects of the game thanks to
+[the great API](https://www.bungie.net/en/Clan/Forum/39966) Bungie
+published.
+
+This bot runs on [Heroku](http://www.heroku.com) infrastructure, powered by
+the [Dart build pack](https://github.com/igrigorik/heroku-buildpack-dart)
+which publishes some tools and instructions to deploy a Dart app to Heroku.
+
+Note that in Slack each command needs to be added as a
+[custom integration](https://api.slack.com/custom-integrations). It should
+be possible to package them as an app, although this has not be attempted
+yet.
+
 ## Commands
 
 - Trials of Osiris
-  - /trials [gamertag]
+  - `/trials [gamertag]`
   - look teams up for Trials of Osiris
   - inspired by the [GuardianGG bot](https://github.com/slavikus/guardiangg-bot)
 - Online clan members
-  - /online [xbl|psn]
-  - checks who's currently online playing Destiny
+  - `/online [xbl | psn]`
+  - check who is currently online playing Destiny
 
 ## Configuration
 
-Several configuration values must be passed to Heroku. This can be done either via the web interface or via the command line:
+Several configuration parameters must be passed to your Heroku dyno.
+This can be done either via the web interface or via the command line:
 ```sh
 heroku config:set PARAMETER_NAME=abcde01234ghijk56789
 ```
 
 Here are the required parameters:
-- *SLACK_VALIDATION_TOKENS*: the [validation tokens](https://api.slack.com/slash-commands#triggering_a_command)
+- `SLACK_VALIDATION_TOKENS`: the [validation tokens](https://api.slack.com/slash-commands#triggering_a_command)
 for the Slack custom integrations
-- *BUNGIE_API_KEY*: needed to talk to the Bungie API; register [here](https://www.bungie.net/en/User/API)
-- *BUNGIE_CLAN_ID*: your clan ID, easily found when navigating to your clan
-page on bungie.net, which has the form `https://www.bungie.net/en/Clan/Forum/{clan_id}`
+- `BUNGIE_API_KEY`: needed to query the Bungie API; register [here](https://www.bungie.net/en/User/API)
+- `BUNGIE_CLAN_ID`: your clan ID, easily found when navigating to your clan
+page on bungie.net, which has the form
+`https://www.bungie.net/en/Clan/Forum/{clan_id}`
 
 ## Running locally
+
+When running a local server, pass the configuration parameters as
+environment variables:
 
 ```sh
 PARAM1=foo123 PARAM2=bar456 pub run bin/server.dart
