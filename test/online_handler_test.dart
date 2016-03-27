@@ -86,7 +86,6 @@ void main() {
         .thenReturn(<ClanMember>[_MEMBER_ONE, _MEMBER_TWO]);
     final context = {'bungie_client': client, 'text': 'xbl'};
     final json = await _getResponse(handler, context);
-    print(json);
     expect(json['response_type'], equals('in_channel'));
     expect(json['attachments'], isNotNull);
   });

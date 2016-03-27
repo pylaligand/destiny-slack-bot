@@ -3,6 +3,7 @@
 import 'dart:io' show Platform;
 import 'dart:async' show runZoned;
 
+import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as io;
 import 'package:shelf_route/shelf_route.dart';
@@ -22,6 +23,12 @@ String _getConfigValue(String name) {
 }
 
 void main() {
+  Logger.root.level = Level.ALL;
+  Logger.root.onRecord.listen((LogRecord rec) {
+    print('${rec.level.name}: ${rec.time}: ${rec.loggerName}: ${rec.message}');
+  });
+
+  final log = new Logger('DestinySlackBot');
   final portEnv = Platform.environment['PORT'];
   final port = portEnv == null ? 9999 : int.parse(portEnv);
 
@@ -35,14 +42,15 @@ void main() {
     ..addAll(new OnlineHandler(bungieClanId), path: '/online');
 
   final handler = const shelf.Pipeline()
-      .addMiddleware(shelf.logRequests())
+      .addMiddleware(
+          shelf.logRequests(logger: (String message, _) => log.info(message)))
       .addMiddleware(BungieMiddleWare.get(bungieApiKey))
       .addMiddleware(SlackMiddleware.get(slackTokens))
       .addHandler(commandRouter.handler);
 
   runZoned(() {
-    print('Serving on port $port');
-    printRoutes(commandRouter);
+    log.info('Serving on port $port');
+    printRoutes(commandRouter, printer: log.info);
     io.serve(handler, '0.0.0.0', port);
-  }, onError: (e, stackTrace) => print('Oh noes! $e $stackTrace'));
+  }, onError: (e, stackTrace) => log.severe('Oh noes! $e $stackTrace'));
 }
