@@ -5,22 +5,18 @@ import 'dart:math' as math;
 
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
-import 'package:shelf_route/shelf_route.dart';
 
 import 'bungie_client.dart';
 import 'guardian_gg_client.dart';
+import 'slack_command_handler.dart';
 import 'slack_format.dart';
 
 /// Handles request for Trials of Osiris information.
-class TrialsHandler extends Routeable {
+class TrialsHandler extends SlackCommandHandler {
   final log = new Logger('TrialsHandler');
 
   @override
-  createRoutes(Router router) {
-    router.post('/', _handle);
-  }
-
-  Future<shelf.Response> _handle(shelf.Request request) async {
+  Future<shelf.Response> handle(shelf.Request request) async {
     final params = request.context;
     final String gamertag = params['text'];
     log.info('@${params['user_name']} looking up "$gamertag"');

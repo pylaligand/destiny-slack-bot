@@ -10,6 +10,10 @@ class SlackMiddleware {
 
   static shelf.Middleware get(List<String> tokens) => (shelf.Handler handler) {
         return (shelf.Request request) async {
+          if (request.method != 'POST') {
+            // Only perform token verification on POST requests.
+            return handler(request);
+          }
           final contentType = request.headers['content-type'];
           if (contentType != 'application/x-www-form-urlencoded') {
             log.warning('Invalid content type: $contentType');
