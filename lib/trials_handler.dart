@@ -23,7 +23,7 @@ class TrialsHandler extends SlackCommandHandler {
 
     // Look up the Destiny ID.
     final BungieClient client = params['bungie_client'];
-    final destinyId = await _getDestinyId(client, gamertag);
+    final destinyId = await client.getDestinyId(gamertag);
     if (destinyId == null) {
       log.warning('Player not found');
       return new shelf.Response.ok(
@@ -49,23 +49,6 @@ class TrialsHandler extends SlackCommandHandler {
     trialsGuardians.forEach((g) => log.info(g));
 
     return createTextResponse(_formatReport(trialsGuardians));
-  }
-
-  /// Attempts to fetch the Destiny id of the player identified by [gamertag].
-  ///
-  /// If [onXbox] is specified, this method will look for the player on the
-  /// appropriate platform, return the Destiny id is found or null otherwise.
-  ///
-  /// if [onXbox] is not specified, this method will look for the player on both
-  /// platforms. If the player is found, the return value will be a pair
-  /// consisting of the Destiny id and a boolean representing the platform similar
-  /// to [onXbox]. Otherwise null is returned.
-  static Future<DestinyId> _getDestinyId(BungieClient client, String gamertag,
-      {bool onXbox}) async {
-    return onXbox != null
-        ? await client.getDestinyId(gamertag, onXbox)
-        : (await client.getDestinyId(gamertag, true /* Xbox */) ??
-            await client.getDestinyId(gamertag, false /* Playstation */));
   }
 
   /// Returns the subclass last used by the given player, or null if it could

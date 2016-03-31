@@ -9,6 +9,7 @@ import 'package:shelf/shelf_io.dart' as io;
 import 'package:shelf_route/shelf_route.dart';
 
 import '../lib/bungie_middleware.dart';
+import '../lib/grimoire_handler.dart';
 import '../lib/online_handler.dart';
 import '../lib/slack_middleware.dart';
 import '../lib/trials_handler.dart';
@@ -39,7 +40,8 @@ void main() {
   final commandRouter = router()
     ..get('/', (_) => new shelf.Response.ok('This is the Destiny bot!'))
     ..addAll(new TrialsHandler(), path: '/trials')
-    ..addAll(new OnlineHandler(bungieClanId), path: '/online');
+    ..addAll(new OnlineHandler(bungieClanId), path: '/online')
+    ..addAll(new GrimoireHandler(), path: '/grimoire');
 
   final handler = const shelf.Pipeline()
       .addMiddleware(
