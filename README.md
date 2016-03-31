@@ -26,6 +26,9 @@ yet.
 - Online clan members
   - `/online [xbl | psn]`
   - check who is currently online playing Destiny
+- Grimoire
+  - `/grimoire [gamertag | @username | nothing]`
+  - view a player's grimoire score
 
 ## Configuration
 
