@@ -11,8 +11,9 @@ import '../lib/grimoire_handler.dart';
 
 const _SCORE = 4860;
 const _USER_ONE = 'mother4nn';
+const _AT_USER_ONE = '@mother4nn';
 const _USER_TWO = 'yy_recent_person_yy';
-const _GAMERTAG = 'yy recent person yy';
+const _USER_TWO_GAMERTAG = 'yy recent person yy';
 const _DESTINY_ID = const DestinyId(true, 'abcdefghijkl');
 
 void main() {
@@ -34,27 +35,28 @@ void main() {
   test('unknown gamertag', () async {
     when(client.getDestinyId(any)).thenReturn(null);
     context['user_name'] = _USER_ONE;
-    context['text'] = _GAMERTAG;
+    context['text'] = _USER_TWO_GAMERTAG;
     final json = await _getResponse(handler, context);
     expect(json['response_type'], isNot(equals('in_channel')));
   });
 
   test('cannot find score', () async {
-    when(client.getDestinyId(_GAMERTAG)).thenReturn(_DESTINY_ID);
+    when(client.getDestinyId(_USER_TWO_GAMERTAG)).thenReturn(_DESTINY_ID);
     when(client.getGrimoireScore(any)).thenReturn(null);
     context['user_name'] = _USER_ONE;
-    context['text'] = _GAMERTAG;
+    context['text'] = _USER_TWO_GAMERTAG;
     final json = await _getResponse(handler, context);
     expect(json['response_type'], isNot(equals('in_channel')));
   });
 
   test('get score', () async {
-    when(client.getDestinyId(_GAMERTAG)).thenReturn(_DESTINY_ID);
+    when(client.getDestinyId(_USER_TWO_GAMERTAG)).thenReturn(_DESTINY_ID);
     when(client.getGrimoireScore(_DESTINY_ID)).thenReturn(_SCORE);
     context['user_name'] = _USER_ONE;
-    context['text'] = _GAMERTAG;
+    context['text'] = _USER_TWO_GAMERTAG;
     final json = await _getResponse(handler, context);
     expect(json['response_type'], equals('in_channel'));
+    expect(json['text'], contains(_USER_TWO_GAMERTAG));
     expect(json['text'], contains(_SCORE.toString()));
   });
 
@@ -62,17 +64,42 @@ void main() {
     when(client.getDestinyId(_USER_ONE)).thenReturn(_DESTINY_ID);
     when(client.getGrimoireScore(_DESTINY_ID)).thenReturn(_SCORE);
     context['user_name'] = _USER_ONE;
+    context['text'] = '';
     final json = await _getResponse(handler, context);
     expect(json['response_type'], equals('in_channel'));
+    expect(json['text'], contains(_USER_ONE));
+    expect(json['text'], contains(_SCORE.toString()));
+  });
+
+  test('fall back to username without text', () async {
+    when(client.getDestinyId(_USER_ONE)).thenReturn(_DESTINY_ID);
+    when(client.getGrimoireScore(_DESTINY_ID)).thenReturn(_SCORE);
+    context['user_name'] = _USER_ONE;
+    final json = await _getResponse(handler, context);
+    expect(json['response_type'], equals('in_channel'));
+    expect(json['text'], contains(_USER_ONE));
     expect(json['text'], contains(_SCORE.toString()));
   });
 
   test('replace underscores', () async {
-    when(client.getDestinyId(_GAMERTAG)).thenReturn(_DESTINY_ID);
+    when(client.getDestinyId(_USER_TWO_GAMERTAG)).thenReturn(_DESTINY_ID);
     when(client.getGrimoireScore(_DESTINY_ID)).thenReturn(_SCORE);
     context['user_name'] = _USER_TWO;
+    context['text'] = '';
     final json = await _getResponse(handler, context);
     expect(json['response_type'], equals('in_channel'));
+    expect(json['text'], contains(_USER_TWO));
+    expect(json['text'], contains(_SCORE.toString()));
+  });
+
+  test('understands @-mentions', () async {
+    when(client.getDestinyId(_USER_ONE)).thenReturn(_DESTINY_ID);
+    when(client.getGrimoireScore(_DESTINY_ID)).thenReturn(_SCORE);
+    context['user_name'] = _USER_TWO;
+    context['text'] = _AT_USER_ONE;
+    final json = await _getResponse(handler, context);
+    expect(json['response_type'], equals('in_channel'));
+    expect(json['text'], contains(_USER_ONE));
     expect(json['text'], contains(_SCORE.toString()));
   });
 }

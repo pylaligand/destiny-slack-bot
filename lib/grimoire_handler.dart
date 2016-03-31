@@ -18,7 +18,7 @@ class GrimoireHandler extends SlackCommandHandler {
     final params = request.context;
     final BungieClient client = params['bungie_client'];
     final String userName = params['user_name'];
-    final String gamertag = params['text'] ?? userName;
+    final String gamertag = _getGamertag(userName, params['text']);
 
     log.info('@$userName looking up "$gamertag"');
     lookUp() async {
@@ -50,5 +50,16 @@ class GrimoireHandler extends SlackCommandHandler {
       return createTextResponse('Could not find grimoire score for $gamertag',
           private: true);
     }
+  }
+
+  /// Returns the gamertag to look for based on the request parameters.
+  static String _getGamertag(String userName, String text) {
+    if (text == null || text.isEmpty) {
+      return userName;
+    }
+    if (text[0] == '@') {
+      return text.substring(1);
+    }
+    return text;
   }
 }
