@@ -40,10 +40,26 @@ class BungieClient {
 
   BungieClient(this._apiKey);
 
+  /// Attempts to fetch the Destiny id of the player identified by [gamertag].
+  ///
+  /// If [onXbox] is specified, this method will look for the player on the
+  /// appropriate platform, return the Destiny id is found or null otherwise.
+  ///
+  /// if [onXbox] is not specified, this method will look for the player on both
+  /// platforms. If the player is found, the return value will be a pair
+  /// consisting of the Destiny id and a boolean representing the platform similar
+  /// to [onXbox]. Otherwise null is returned.
+  Future<DestinyId> getDestinyId(String gamertag, {bool onXbox}) async {
+    return onXbox != null
+        ? await _getDestinyId(gamertag, onXbox)
+        : (await _getDestinyId(gamertag, true /* Xbox */) ??
+            await _getDestinyId(gamertag, false /* Playstation */));
+  }
+
   /// Returns the Destiny id of the player named [gamertag].
   ///
   /// Will look up on XBL or PSN depending on [onXbox].
-  Future<DestinyId> getDestinyId(String gamertag, bool onXbox) async {
+  Future<DestinyId> _getDestinyId(String gamertag, bool onXbox) async {
     final type = onXbox ? '1' : '2';
     final url = '$_BASE/Destiny/SearchDestinyPlayer/$type/$gamertag';
     final data = await _getJson(url);
@@ -81,6 +97,20 @@ class BungieClient {
         characterData['characterId'],
         characterData['classHash'].toString(),
         DateTime.parse(characterData['dateLastPlayed']));
+  }
+
+  /// Returns the grimoire score of the given player.
+  Future<int> getGrimoireScore(Id id) async {
+    final url = '$_BASE/User/GetBungieAccount/${id.token}/${id.type}/';
+    final data = await _getJson(url);
+    if (data['ErrorCode'] != 1 ||
+        data['Response'] == null ||
+        data['Response']['destinyAccounts'] == null ||
+        data['Response']['destinyAccounts'].isEmpty ||
+        data['Response']['destinyAccounts'][0]) {
+      return null;
+    }
+    return data['Response']['destinyAccounts'][0]['grimoireScore'];
   }
 
   /// Returns the equipped subclass for the given character.
