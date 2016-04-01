@@ -30,7 +30,7 @@ class TrialsHandler extends SlackCommandHandler {
           'Cannot find player "$gamertag" on XBL or PSN...');
     }
     final onXbox = destinyId.onXbox;
-    log.info('Found id for "$gamertag": $destinyId (Xbox: ${onXbox})');
+    log.info('Found id for "$gamertag": $destinyId (Xbox: $onXbox)');
 
     // Get stats from guardian.gg.
     final guardians =
