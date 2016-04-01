@@ -2,7 +2,7 @@ language: dart
 dart:
   - stable
 script:
-  - dartanalyzer --fatal-warnings --fatal-hints bin/server.dart lib/*.dart test/*.dart
+  - dartanalyzer --lints --fatal-warnings --fatal-hints bin/server.dart lib/*.dart test/*.dart
   - pub run test
 branches:
   only:

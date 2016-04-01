@@ -117,7 +117,7 @@ class BungieClient {
   Future<String> getEquippedSubclass(
       Id id, String characterId, String characterClass) async {
     final url =
-        '$_BASE/Destiny/${id.type}/Account/${id.token}/Character/${characterId}/Inventory/Summary/';
+        '$_BASE/Destiny/${id.type}/Account/${id.token}/Character/$characterId/Inventory/Summary/';
     final data = await _getJson(url);
     if (data['ErrorCode'] != 1 ||
         data['Response'] == null ||
@@ -163,7 +163,7 @@ class BungieClient {
   dynamic _getClanRosterPage(String clanId, bool onXbox, int pageIndex) async {
     final type = onXbox ? '1' : '2';
     final url =
-        '$_BASE/Group/${clanId}/Members/?currentPage=${pageIndex}&platformType=${type}';
+        '$_BASE/Group/$clanId/Members/?currentPage=$pageIndex&platformType=$type';
     return await _getJson(url);
   }
 
