@@ -12,7 +12,7 @@ class Guardian implements Comparable {
   final int elo;
   final num kd;
 
-  Guardian(this.destinyId, this.name, this.elo, this.kd);
+  const Guardian(this.destinyId, this.name, this.elo, this.kd);
 
   @override
   int compareTo(Guardian other) => elo - other.elo;

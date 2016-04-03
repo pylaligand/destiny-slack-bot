@@ -15,6 +15,14 @@ import 'slack_format.dart';
 class TrialsHandler extends SlackCommandHandler {
   final log = new Logger('TrialsHandler');
 
+  final GuardianGgClient _guardianGgClient;
+
+  factory TrialsHandler() {
+    return new TrialsHandler.withClient(new GuardianGgClient());
+  }
+
+  TrialsHandler.withClient(this._guardianGgClient);
+
   @override
   Future<shelf.Response> handle(shelf.Request request) async {
     final params = request.context;
@@ -26,19 +34,19 @@ class TrialsHandler extends SlackCommandHandler {
     final destinyId = await client.getDestinyId(gamertag);
     if (destinyId == null) {
       log.warning('Player not found');
-      return new shelf.Response.ok(
-          'Cannot find player "$gamertag" on XBL or PSN...');
+      return createTextResponse(
+          'Cannot find player "$gamertag" on XBL or PSN...',
+          private: true);
     }
     final onXbox = destinyId.onXbox;
     log.info('Found id for "$gamertag": $destinyId (Xbox: $onXbox)');
 
     // Get stats from guardian.gg.
-    final guardians =
-        await new GuardianGgClient().getTrialsStats(destinyId.token);
+    final guardians = await _guardianGgClient.getTrialsStats(destinyId.token);
     if (guardians.isEmpty) {
       log.warning('No Trials data found');
-      return new shelf.Response.ok(
-          'Could not find Trials data for "$gamertag"');
+      return createTextResponse('Could not find Trials data for "$gamertag"',
+          private: true);
     }
     final trialsGuardians = <TrialsGuardian>[];
     await Future.forEach(guardians, (guardian) async {
