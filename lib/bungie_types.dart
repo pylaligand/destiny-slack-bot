@@ -1,5 +1,7 @@
 // Copyright (c) 2016 P.Y. Laligand
 
+import 'package:quiver/core.dart';
+
 /// Represents a player's character.
 class Character {
   final String id;
@@ -32,6 +34,13 @@ class DestinyId extends Id {
 
   /// Whether the player is on Xbox or Playstation.
   bool get onXbox => type == '1';
+
+  @override
+  bool operator ==(other) =>
+      other is DestinyId && onXbox == other.onXbox && token == other.token;
+
+  @override
+  int get hashCode => hash2(onXbox, token);
 }
 
 /// The Bungie identifier, independent of gaming platform.
