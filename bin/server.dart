@@ -9,6 +9,7 @@ import 'package:shelf/shelf_io.dart' as io;
 import 'package:shelf_route/shelf_route.dart';
 
 import '../lib/bungie_middleware.dart';
+import '../lib/card_handler.dart';
 import '../lib/grimoire_handler.dart';
 import '../lib/online_handler.dart';
 import '../lib/slack_middleware.dart';
@@ -36,12 +37,14 @@ void main() {
   final slackTokens = _getConfigValue('SLACK_VALIDATION_TOKENS').split(',');
   final bungieApiKey = _getConfigValue('BUNGIE_API_KEY');
   final bungieClanId = _getConfigValue('BUNGIE_CLAN_ID');
+  final worldDatabase = _getConfigValue('DATABASE_URL');
 
   final commandRouter = router()
     ..get('/', (_) => new shelf.Response.ok('This is the Destiny bot!'))
     ..addAll(new TrialsHandler(), path: '/trials')
     ..addAll(new OnlineHandler(bungieClanId), path: '/online')
-    ..addAll(new GrimoireHandler(), path: '/grimoire');
+    ..addAll(new GrimoireHandler(), path: '/grimoire')
+    ..addAll(new CardHandler(worldDatabase), path: '/card');
 
   final handler = const shelf.Pipeline()
       .addMiddleware(
