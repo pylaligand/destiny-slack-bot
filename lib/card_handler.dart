@@ -21,15 +21,14 @@ class CardHandler extends SlackCommandHandler {
   Future<shelf.Response> handle(shelf.Request request) async {
     final pg.Connection database = await pg.connect(_db);
     try {
-      pg.Row countRow =
+      final countRow =
           await database.query('SELECT COUNT(*) FROM grimoirecards').first;
-      int count = countRow.count;
-      int index = new Random().nextInt(count);
-      pg.Row cardRow = await database
+      final count = countRow.count;
+      final index = new Random().nextInt(count);
+      final cardRow = await database
           .query('SELECT * from grimoirecards LIMIT 1 OFFSET $index')
           .first;
       final String title = cardRow.title;
-      print(cardRow.content);
       final String text = cardRow.content
           .replaceAll('<br/>', '\n')
           .replaceAll('&quot;', '"')
