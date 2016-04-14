@@ -12,6 +12,7 @@ import '../lib/bungie_middleware.dart';
 import '../lib/card_handler.dart';
 import '../lib/grimoire_handler.dart';
 import '../lib/online_handler.dart';
+import '../lib/postgres_middleware.dart';
 import '../lib/slack_middleware.dart';
 import '../lib/trials_handler.dart';
 
@@ -44,13 +45,14 @@ void main() {
     ..addAll(new TrialsHandler(), path: '/trials')
     ..addAll(new OnlineHandler(bungieClanId), path: '/online')
     ..addAll(new GrimoireHandler(), path: '/grimoire')
-    ..addAll(new CardHandler(worldDatabase), path: '/card');
+    ..addAll(new CardHandler(), path: '/card');
 
   final handler = const shelf.Pipeline()
       .addMiddleware(
           shelf.logRequests(logger: (String message, _) => log.info(message)))
       .addMiddleware(BungieMiddleWare.get(bungieApiKey))
       .addMiddleware(SlackMiddleware.get(slackTokens))
+      .addMiddleware(PostgresMiddleware.get(worldDatabase))
       .addHandler(commandRouter.handler);
 
   runZoned(() {
