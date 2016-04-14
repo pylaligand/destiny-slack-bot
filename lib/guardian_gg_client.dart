@@ -31,8 +31,9 @@ class GuardianGgClient {
       final destinyId = guardian['membershipId'];
       final name = guardian['name'];
       final elo = guardian['elo'].round();
-      final kd = num
-          .parse((guardian['kills'] / guardian['deaths']).toStringAsFixed(2));
+      final deaths = guardian['deaths'];
+      final kd = num.parse(
+          (deaths > 0 ? (guardian['kills'] / deaths) : 0).toStringAsFixed(2));
       return new Guardian(destinyId, name, elo, kd);
     }).toList()..sort();
   }
