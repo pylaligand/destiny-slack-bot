@@ -11,9 +11,9 @@ import 'guardian_gg_client.dart';
 import 'slack_command_handler.dart';
 import 'slack_format.dart';
 
-/// Handles request for Trials of Osiris information.
+/// Handles requests for Trials of Osiris information.
 class TrialsHandler extends SlackCommandHandler {
-  final log = new Logger('TrialsHandler');
+  final _log = new Logger('TrialsHandler');
 
   final GuardianGgClient _guardianGgClient;
 
@@ -27,24 +27,24 @@ class TrialsHandler extends SlackCommandHandler {
   Future<shelf.Response> handle(shelf.Request request) async {
     final params = request.context;
     final String gamertag = params['text'];
-    log.info('@${params['user_name']} looking up "$gamertag"');
+    _log.info('@${params['user_name']} looking up "$gamertag"');
 
     // Look up the Destiny ID.
     final BungieClient client = params['bungie_client'];
     final destinyId = await client.getDestinyId(gamertag);
     if (destinyId == null) {
-      log.warning('Player not found');
+      _log.warning('Player not found');
       return createTextResponse(
           'Cannot find player "$gamertag" on XBL or PSN...',
           private: true);
     }
     final onXbox = destinyId.onXbox;
-    log.info('Found id for "$gamertag": $destinyId (Xbox: $onXbox)');
+    _log.info('Found id for "$gamertag": $destinyId (Xbox: $onXbox)');
 
     // Get stats from guardian.gg.
     final guardians = await _guardianGgClient.getTrialsStats(destinyId.token);
     if (guardians.isEmpty) {
-      log.warning('No Trials data found');
+      _log.warning('No Trials data found');
       return createTextResponse('Could not find Trials data for "$gamertag"',
           private: true);
     }
@@ -54,7 +54,7 @@ class TrialsHandler extends SlackCommandHandler {
       final subclass = (await _getLastUsedSubclass(client, id)) ?? 'Unknown';
       trialsGuardians.add(new TrialsGuardian(guardian, subclass));
     });
-    trialsGuardians.forEach((g) => log.info(g));
+    trialsGuardians.forEach((g) => _log.info(g));
 
     return createTextResponse(_formatReport(trialsGuardians));
   }
@@ -65,13 +65,13 @@ class TrialsHandler extends SlackCommandHandler {
       BungieClient client, DestinyId destinyId) async {
     final character = await client.getLastPlayedCharacter(destinyId);
     if (character == null) {
-      log.warning('Unable to locate character for $destinyId');
+      _log.warning('Unable to locate character for $destinyId');
       return null;
     }
     final subclass = await client.getEquippedSubclass(
         destinyId, character.id, character.clazz);
     if (subclass == null) {
-      log.warning(
+      _log.warning(
           'Unable to determine subclass for character ${character.id} of $destinyId');
       return null;
     }

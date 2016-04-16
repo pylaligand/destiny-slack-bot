@@ -13,7 +13,7 @@ import 'slack_format.dart';
 
 /// Display a random grimoire card.
 class CardHandler extends SlackCommandHandler {
-  final log = new Logger('CardHandler');
+  final _log = new Logger('CardHandler');
 
   @override
   Future<shelf.Response> handle(shelf.Request request) async {
@@ -21,16 +21,16 @@ class CardHandler extends SlackCommandHandler {
     final pg.Connection database = await client.connect();
     try {
       final countRow =
-          await database.query('SELECT COUNT(*) FROM grimoirecards').first;
+          await database.query('SELECT COUNT(*) FROM grimoireCards').first;
       final count = countRow.count;
       final index = new Random().nextInt(count);
       final cardRow = await database
-          .query('SELECT * FROM grimoirecards LIMIT 1 OFFSET $index')
+          .query('SELECT * FROM grimoireCards LIMIT 1 OFFSET $index')
           .first;
       final String title = _unescape(cardRow.title);
       final String text = _unescape(cardRow.content);
       final url = 'http://destiny-grimoire.info/#Card-${cardRow.id}';
-      log.info('Selecting card $index/$count, id is ${cardRow.id}');
+      _log.info('Selecting card $index/$count, id is ${cardRow.id}');
       return createAttachmentResponse(
           {'title': title, 'title_link': url, 'text': text, 'fallback': title});
     } finally {

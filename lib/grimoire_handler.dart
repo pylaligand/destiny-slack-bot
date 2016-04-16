@@ -11,7 +11,7 @@ import 'slack_format.dart';
 
 /// Fetches grimoire scores.
 class GrimoireHandler extends SlackCommandHandler {
-  final log = new Logger('GrimoireHandler');
+  final _log = new Logger('GrimoireHandler');
 
   @override
   Future<shelf.Response> handle(shelf.Request request) async {
@@ -20,7 +20,7 @@ class GrimoireHandler extends SlackCommandHandler {
     final String userName = params['user_name'];
     final String gamertag = _getGamertag(userName, params['text']);
 
-    log.info('@$userName looking up "$gamertag"');
+    _log.info('@$userName looking up "$gamertag"');
     lookUp() async {
       final directId = await client.getDestinyId(gamertag);
       if (directId != null) {
@@ -30,23 +30,23 @@ class GrimoireHandler extends SlackCommandHandler {
         return null;
       }
       final alteredGamertag = gamertag.replaceAll('_', ' ');
-      log.info('Trying alternate gamertag "$alteredGamertag"');
+      _log.info('Trying alternate gamertag "$alteredGamertag"');
       return await client.getDestinyId(alteredGamertag);
     }
     final id = await lookUp();
     if (id == null) {
-      log.warning('Could not identify gamertag.');
+      _log.warning('Could not identify gamertag.');
       return createTextResponse('Unable to identify "$gamertag"',
           private: true);
     }
-    log.info('Found id: $id');
+    _log.info('Found id: $id');
 
     int score = await client.getGrimoireScore(id);
     if (score != null) {
-      log.info('Score is $score');
+      _log.info('Score is $score');
       return createTextResponse('$gamertag has a grimoire score of *$score*');
     } else {
-      log.warning('Could not find score...');
+      _log.warning('Could not find score...');
       return createTextResponse('Could not find grimoire score for $gamertag',
           private: true);
     }

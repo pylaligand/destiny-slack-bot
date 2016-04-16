@@ -43,7 +43,7 @@ void main() {
     expect(json['response_type'], equals('in_channel'));
     expect(json['attachments'].length, equals(1));
     expect(json['attachments'][0]['title'], equals('"Foo" Bar'));
-    expect(json['attachments'][0]['text'], contains('Bar\nFoo'));
+    expect(json['attachments'][0]['text'], equals('Bar\nFoo'));
   });
 }
 
