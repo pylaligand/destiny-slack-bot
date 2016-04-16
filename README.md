@@ -31,7 +31,10 @@ yet.
   - view a player's grimoire score
 - Grimoire cards
   - `/card`
-  - shows a random grimoire card
+  - show a random grimoire card
+- Xur inventory
+  - `/xur`
+  - list Xur's inventory when he's around
 
 ## Configuration
 
