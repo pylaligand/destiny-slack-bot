@@ -65,6 +65,7 @@ can be set up on [Heroku](https://www.heroku.com/postgres). The local instance
 is provisioned via the creation tool, while the live instance is bootstrapped
 from the local instance with:
 ```
+heroku pg:reset DATABASE_URL
 heroku pg:push <local db name> DATABASE_URL --app <your app's name>
 ```
 

@@ -14,7 +14,7 @@ const _OPTION_PSN = 'psn';
 
 /// Looks up online clan members.
 class OnlineHandler extends SlackCommandHandler {
-  final log = new Logger('OnlineHandler');
+  final _log = new Logger('OnlineHandler');
   final String _clanId;
 
   OnlineHandler(this._clanId);
@@ -24,9 +24,9 @@ class OnlineHandler extends SlackCommandHandler {
     final params = request.context;
     final BungieClient client = params['bungie_client'];
     final option = params['text'];
-    log.info('@${params['user_name']} viewing online guardians on $option');
+    _log.info('@${params['user_name']} viewing online guardians on $option');
     if (option != _OPTION_XBL && option != _OPTION_PSN) {
-      log.warning('Invalid platform identifier');
+      _log.warning('Invalid platform identifier');
       return createTextResponse('Err, that is not a valid platform!',
           private: true);
     }
@@ -39,8 +39,8 @@ class OnlineHandler extends SlackCommandHandler {
         nowPlaying.add(member);
       }
     }));
-    log.info('${nowPlaying.length} online');
-    nowPlaying.forEach((member) => log.info(' - $member'));
+    _log.info('${nowPlaying.length} online');
+    nowPlaying.forEach((member) => _log.info(' - $member'));
     if (nowPlaying.isEmpty) {
       final text = 'No guardian online';
       return createAttachmentResponse(
