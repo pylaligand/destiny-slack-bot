@@ -15,6 +15,7 @@ import '../lib/online_handler.dart';
 import '../lib/postgres_middleware.dart';
 import '../lib/slack_middleware.dart';
 import '../lib/trials_handler.dart';
+import '../lib/xur_handler.dart';
 
 /// Returns the value for [name] in the server configuration.
 String _getConfigValue(String name) {
@@ -45,7 +46,8 @@ void main() {
     ..addAll(new TrialsHandler(), path: '/trials')
     ..addAll(new OnlineHandler(bungieClanId), path: '/online')
     ..addAll(new GrimoireHandler(), path: '/grimoire')
-    ..addAll(new CardHandler(), path: '/card');
+    ..addAll(new CardHandler(), path: '/card')
+    ..addAll(new XurHandler(), path: '/xur');
 
   final handler = const shelf.Pipeline()
       .addMiddleware(

@@ -63,8 +63,7 @@ class BungieClient {
     final type = onXbox ? '1' : '2';
     final url = '$_BASE/Destiny/SearchDestinyPlayer/$type/$gamertag';
     final data = await _getJson(url);
-    if (data['ErrorCode'] != 1 ||
-        data['Response'] == null ||
+    if (!_hasValidResponse(data) ||
         data['Response'].isEmpty ||
         data['Response'][0] == null) {
       return null;
@@ -76,8 +75,7 @@ class BungieClient {
   Future<Character> getLastPlayedCharacter(Id id) async {
     final url = '$_BASE/User/GetBungieAccount/${id.token}/${id.type}/';
     final data = await _getJson(url);
-    if (data['ErrorCode'] != 1 ||
-        data['Response'] == null ||
+    if (!_hasValidResponse(data) ||
         data['Response']['destinyAccounts'] == null ||
         data['Response']['destinyAccounts'].isEmpty ||
         data['Response']['destinyAccounts'][0] == null ||
@@ -103,8 +101,7 @@ class BungieClient {
   Future<int> getGrimoireScore(Id id) async {
     final url = '$_BASE/User/GetBungieAccount/${id.token}/${id.type}/';
     final data = await _getJson(url);
-    if (data['ErrorCode'] != 1 ||
-        data['Response'] == null ||
+    if (!_hasValidResponse(data) ||
         data['Response']['destinyAccounts'] == null ||
         data['Response']['destinyAccounts'].isEmpty ||
         data['Response']['destinyAccounts'][0]) {
@@ -119,8 +116,7 @@ class BungieClient {
     final url =
         '$_BASE/Destiny/${id.type}/Account/${id.token}/Character/$characterId/Inventory/Summary/';
     final data = await _getJson(url);
-    if (data['ErrorCode'] != 1 ||
-        data['Response'] == null ||
+    if (!_hasValidResponse(data) ||
         data['Response']['data'] == null ||
         data['Response']['data']['items'] == null ||
         data['Response']['data']['items'].isEmpty) {
@@ -139,8 +135,7 @@ class BungieClient {
     final members = <ClanMember>[];
     while (true) {
       final data = await _getClanRosterPage(clanId, onXbox, pageIndex++);
-      if (data['ErrorCode'] != 1 ||
-          data['Response'] == null ||
+      if (!_hasValidResponse(data) ||
           data['Response']['results'] == null ||
           data['Response']['results'].isEmpty) {
         continue;
@@ -167,8 +162,37 @@ class BungieClient {
     return await _getJson(url);
   }
 
+  /// Returns the item hashes of Xur's wares.
+  /// The returned list is empty if Xur is not around, or null if his inventory
+  /// could not be retrieved.
+  Future<List<int>> getXurInventory() async {
+    const url = '$_BASE/Destiny/Advisors/Xur/';
+    final data = await _getJson(url);
+    if (!_hasValidResponse(data)) {
+      return null;
+    }
+    if (data['Response'].isEmpty) {
+      return const <int>[];
+    }
+    final Map<String, dynamic> exoticItems = data['Response']['data']
+            ['saleItemCategories']
+        .firstWhere((Map<String, dynamic> category) =>
+            category['categoryTitle'] == 'Exotic Gear');
+    return exoticItems['saleItems']
+        .map((Map<String, dynamic> item) => item['item']['itemHash'])
+        .toList();
+  }
+
   dynamic _getJson(String url) async {
     var body = await http.read(url, headers: {'X-API-Key': this._apiKey});
-    return JSON.decode(body);
+    try {
+      return JSON.decode(body);
+    } on FormatException catch (_) {
+      return null;
+    }
+  }
+
+  bool _hasValidResponse(dynamic json) {
+    return json != null && json['ErrorCode'] == 1 && json['Response'] != null;
   }
 }
