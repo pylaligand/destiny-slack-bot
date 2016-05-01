@@ -4,10 +4,9 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:logging/logging.dart';
-import 'package:postgresql/postgresql.dart' as pg;
 import 'package:shelf/shelf.dart' as shelf;
 
-import 'postgres_client.dart';
+import 'bungie_database.dart';
 import 'slack_command_handler.dart';
 import 'slack_format.dart';
 
@@ -17,25 +16,18 @@ class CardHandler extends SlackCommandHandler {
 
   @override
   Future<shelf.Response> handle(shelf.Request request) async {
-    final PostgresClient client = request.context['postgres_client'];
-    final pg.Connection database = await client.connect();
-    try {
-      final countRow =
-          await database.query('SELECT COUNT(*) FROM grimoireCards').first;
-      final count = countRow.count;
-      final index = new Random().nextInt(count);
-      final cardRow = await database
-          .query('SELECT * FROM grimoireCards LIMIT 1 OFFSET $index')
-          .first;
-      final String title = _unescape(cardRow.title);
-      final String text = _unescape(cardRow.content);
-      final url = 'http://destiny-grimoire.info/#Card-${cardRow.id}';
-      _log.info('Selecting card $index/$count, id is ${cardRow.id}');
-      return createAttachmentResponse(
-          {'title': title, 'title_link': url, 'text': text, 'fallback': title});
-    } finally {
-      database.close();
-    }
+    final params = request.context;
+    final BungieDatabase database = params['bungie_database'];
+    await database.connect();
+    final count = await database.getGrimoireCardCount();
+    final index = new Random().nextInt(count);
+    final card = await database.getGrimoireCard(index);
+    final String title = _unescape(card.title);
+    final String text = _unescape(card.content);
+    final url = 'http://destiny-grimoire.info/#Card-${card.id.hash}';
+    _log.info('Selecting card $index/$count, id is ${card.id}');
+    return createAttachmentResponse(
+        {'title': title, 'title_link': url, 'text': text, 'fallback': title});
   }
 
   static String _unescape(String string) {

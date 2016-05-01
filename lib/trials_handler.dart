@@ -51,7 +51,8 @@ class TrialsHandler extends SlackCommandHandler {
     final trialsGuardians = <TrialsGuardian>[];
     await Future.forEach(guardians, (guardian) async {
       final id = new DestinyId(onXbox, guardian.destinyId);
-      final subclass = (await _getLastUsedSubclass(client, id)) ?? 'Unknown';
+      final inventory = (await _getLastInventory(client, id));
+      final subclass = inventory?.subclass ?? 'Unknown';
       trialsGuardians.add(new TrialsGuardian(guardian, subclass));
     });
     trialsGuardians.forEach((g) => _log.info(g));
@@ -61,21 +62,20 @@ class TrialsHandler extends SlackCommandHandler {
 
   /// Returns the subclass last used by the given player, or null if it could
   /// not be determined.
-  Future<String> _getLastUsedSubclass(
+  Future<Inventory> _getLastInventory(
       BungieClient client, DestinyId destinyId) async {
     final character = await client.getLastPlayedCharacter(destinyId);
     if (character == null) {
       _log.warning('Unable to locate character for $destinyId');
       return null;
     }
-    final subclass = await client.getEquippedSubclass(
-        destinyId, character.id, character.clazz);
-    if (subclass == null) {
+    final inventory = await client.getInventory(destinyId, character.id);
+    if (inventory == null) {
       _log.warning(
           'Unable to determine subclass for character ${character.id} of $destinyId');
       return null;
     }
-    return subclass;
+    return inventory;
   }
 
   /// Returns the formatted guardian list for display in a bot message.

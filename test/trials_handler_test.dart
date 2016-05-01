@@ -73,9 +73,11 @@ void main() {
         .thenReturn(_DESTINY_ID);
     when(bungie_client.getLastPlayedCharacter(argThat(equals(_DESTINY_ID))))
         .thenReturn(_CHARACTER);
-    when(bungie_client.getEquippedSubclass(argThat(equals(_DESTINY_ID)),
-            argThat(equals(_CHARACTER.id)), argThat(equals(_CHARACTER.clazz))))
-        .thenReturn(_SUBCLASS);
+    final inventory = new _MockInventory();
+    when(inventory.subclass).thenReturn(_SUBCLASS);
+    when(bungie_client.getInventory(
+            argThat(equals(_DESTINY_ID)), argThat(equals(_CHARACTER.id))))
+        .thenReturn(inventory);
     when(guardian_gg_client.getTrialsStats(argThat(equals(_DESTINY_ID.token))))
         .thenReturn([_GUARDIAN]);
     final context = {'bungie_client': bungie_client, 'text': _GAMERTAG};
@@ -99,3 +101,5 @@ dynamic _getResponse(
 class _MockBungieClient extends Mock implements BungieClient {}
 
 class _MockGuardianGgClient extends Mock implements GuardianGgClient {}
+
+class _MockInventory extends Mock implements Inventory {}

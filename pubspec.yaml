@@ -11,5 +11,5 @@ dev_dependencies:
   args: ^0.13.4
   mockito: ^0.11.0
   postgresql: ^0.3.3
-  sqlite: ^0.3.0
+  sqlite: ^0.4.0
   test: ^0.12.13
