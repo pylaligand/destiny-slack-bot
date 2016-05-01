@@ -12,28 +12,6 @@ export 'bungie_types.dart';
 /// Base URL for API calls.
 const _BASE = 'http://www.bungie.net/Platform';
 
-/// Mappings from class to subclasses to subclass names.
-const _SUBCLASSES = const {
-  // Hunter
-  '671679327': const {
-    '2962927168': 'Bladedancer',
-    '4143670657': 'Nightstalker',
-    '1716862031': 'Gunslinger'
-  },
-  // Titan
-  '3655393761': const {
-    '2455559914': 'Striker',
-    '2007186000': 'Defender',
-    '21395672': 'Sunbreaker'
-  },
-  // Warlock
-  '2271682572': const {
-    '1256644900': 'Stormcaller',
-    '3828867689': 'Voidwalker',
-    '3658182170': 'Sunsinger'
-  }
-};
-
 /// Client for the Bungie REST API.
 class BungieClient {
   final String _apiKey;
@@ -110,9 +88,8 @@ class BungieClient {
     return data['Response']['destinyAccounts'][0]['grimoireScore'];
   }
 
-  /// Returns the equipped subclass for the given character.
-  Future<String> getEquippedSubclass(
-      Id id, String characterId, String characterClass) async {
+  /// Returns the inventory for the given character.
+  Future<Inventory> getInventory(Id id, String characterId) async {
     final url =
         '$_BASE/Destiny/${id.type}/Account/${id.token}/Character/$characterId/Inventory/Summary/';
     final data = await _getJson(url);
@@ -122,11 +99,7 @@ class BungieClient {
         data['Response']['data']['items'].isEmpty) {
       return null;
     }
-    final subclasses = _SUBCLASSES[characterClass];
-    final subclassHash = data['Response']['data']['items']
-        .map((item) => item['itemHash'].toString())
-        .firstWhere((hash) => subclasses.containsKey(hash));
-    return subclassHash != null ? subclasses[subclassHash] : null;
+    return new Inventory(data['Response']['data']['items']);
   }
 
   /// Returns the list of members on XBL or PSN for the given clan.
@@ -162,24 +135,34 @@ class BungieClient {
     return await _getJson(url);
   }
 
-  /// Returns the item hashes of Xur's wares.
+  /// Returns the items sold by Xur.
   /// The returned list is empty if Xur is not around, or null if his inventory
   /// could not be retrieved.
-  Future<List<int>> getXurInventory() async {
+  Future<List<XurExoticItem>> getXurInventory() async {
     const url = '$_BASE/Destiny/Advisors/Xur/';
     final data = await _getJson(url);
     if (!_hasValidResponse(data)) {
       return null;
     }
     if (data['Response'].isEmpty) {
-      return const <int>[];
+      return const <XurExoticItem>[];
     }
     final Map<String, dynamic> exoticItems = data['Response']['data']
             ['saleItemCategories']
         .firstWhere((Map<String, dynamic> category) =>
             category['categoryTitle'] == 'Exotic Gear');
     return exoticItems['saleItems']
-        .map((Map<String, dynamic> item) => item['item']['itemHash'])
+        .map((Map<String, dynamic> item) {
+          if (!item['item']['isEquipment']) {
+            // Ignore exotic engrams.
+            return null;
+          }
+          return new XurExoticItem(
+              new ItemId(item['item']['itemHash']),
+              item['item']['primaryStat']['statHash'] ==
+                  3897883278 /* defense */);
+        })
+        .where((item) => item != null)
         .toList();
   }
 

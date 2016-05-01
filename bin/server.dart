@@ -12,7 +12,6 @@ import '../lib/bungie_middleware.dart';
 import '../lib/card_handler.dart';
 import '../lib/grimoire_handler.dart';
 import '../lib/online_handler.dart';
-import '../lib/postgres_middleware.dart';
 import '../lib/slack_middleware.dart';
 import '../lib/trials_handler.dart';
 import '../lib/xur_handler.dart';
@@ -52,9 +51,8 @@ void main() {
   final handler = const shelf.Pipeline()
       .addMiddleware(
           shelf.logRequests(logger: (String message, _) => log.info(message)))
-      .addMiddleware(BungieMiddleWare.get(bungieApiKey))
+      .addMiddleware(BungieMiddleWare.get(bungieApiKey, worldDatabase))
       .addMiddleware(SlackMiddleware.get(slackTokens))
-      .addMiddleware(PostgresMiddleware.get(worldDatabase))
       .addHandler(commandRouter.handler);
 
   runZoned(() {

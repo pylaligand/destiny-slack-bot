@@ -8,71 +8,161 @@ import 'package:args/args.dart';
 import 'package:postgresql/postgresql.dart' as pg;
 import 'package:sqlite/sqlite.dart' as lite;
 
+import '../lib/bungie_database.dart';
+import '../lib/bungie_types.dart';
+
 const _FLAG_LITE_DB = 'sqlite_db_file';
 const _FLAG_PG_DB = 'postgres_uri';
 
 /// Creates a table containing all the Grimoire cards.
-_createGrimoireCardDatabase(lite.Database liteDb, pg.Connection pgDb) async {
-  const tableName = 'grimoireCards';
-  print('Populating $tableName');
+_createGrimoireDatabase(lite.Database liteDb, pg.Connection pgDb) async {
+  const tableName = BgDb.TABLE_GRIMOIRE;
+  print('Populating $tableName...');
+
+  final Stream<GrimoireCard> cardStream = liteDb
+      .query('SELECT json FROM DestinyGrimoireCardDefinition')
+      .transform(new StreamTransformer<lite.Row, GrimoireCard>.fromHandlers(
+          handleData: (lite.Row row, EventSink<GrimoireCard> sink) {
+    final json = JSON.decode(row['json']);
+    sink.add(new GrimoireCard(
+        json['cardId'], json['cardName'], json['cardDescription']));
+  }));
 
   await pgDb.execute('DROP TABLE IF EXISTS $tableName');
-  await pgDb
-      .execute('CREATE TABLE $tableName (id INT, title TEXT, content TEXT)');
-
-  final entries = [];
-  liteDb.execute('SELECT json FROM DestinyGrimoireCardDefinition',
-      callback: (lite.Row row) {
-    final json = JSON.decode(row['json']);
-    entries.add({
-      'id': row['cardId'],
-      'title': json['cardName'],
-      'content': json['cardDescription']
-    });
-    return false;
-  });
-
+  await pgDb.execute('CREATE TABLE $tableName ('
+      '${BgDb.GRIMOIRE_ID} BIGINT, '
+      '${BgDb.GRIMOIRE_TITLE} TEXT, '
+      '${BgDb.GRIMOIRE_CONTENT} TEXT)');
   int count = 0;
-  await Future.forEach(entries, (entry) async {
-    count += await pgDb.execute(
-        'INSERT INTO $tableName VALUES (@id, @title, @content)', entry);
-  });
+  await for (final GrimoireCard card in cardStream) {
+    count += await pgDb.execute('INSERT INTO $tableName VALUES ('
+        '${card.id}, '
+        '\$\$${card.title}\$\$, '
+        '\$\$${card.content}\$\$)');
+  }
   print('Added $count entries to $tableName.');
 }
 
-/// Creates a table containing a subset of all the inventory items.
-_createItemsDatabase(lite.Database liteDb, pg.Connection pgDb) async {
-  const tableName = 'inventoryItems';
-  print('Populating $tableName');
+/// Creates a table containing all weapons.
+_createWeaponsDatabase(lite.Database liteDb, pg.Connection pgDb) async {
+  final tableName = BgDb.TABLE_WEAPONS;
+  print('Populating $tableName...');
 
-  const targetCategories = const [
-    1, // Weapon
-    20, // Armor
-  ];
-
-  await pgDb.execute('DROP TABLE IF EXISTS $tableName');
-  await pgDb
-      .execute('CREATE TABLE $tableName (id BIGINT, name TEXT, type TEXT)');
-
-  final entries = [];
-  liteDb.execute('SELECT json FROM DestinyInventoryItemDefinition',
-      callback: (lite.Row row) {
+  final Stream<Weapon> weaponStream = liteDb
+      .query('SELECT json FROM DestinyInventoryItemDefinition')
+      .transform(new StreamTransformer<lite.Row, Weapon>.fromHandlers(
+          handleData: (lite.Row row, EventSink<Weapon> sink) {
     final json = JSON.decode(row['json']);
     final List<int> categories = json['itemCategoryHashes'];
-    if (categories.any((category) => targetCategories.contains(category))) {
-      entries.add({
-        'id': json['itemHash'],
-        'name': json['itemName'],
-        'type': json['itemTypeName']
-      });
+    if (categories.contains(1 /* weapon category */)) {
+      final id = json['itemHash'];
+      final name = json['itemName'];
+      final type = WEAPON_TYPE_MAPPINGS[json['itemSubType']];
+      final rarity = RARITY_MAPPINGS[json['tierType']];
+      sink.add(new Weapon(id, name, type, rarity));
+    }
+  })).where((Weapon weapon) =>
+          weapon.name != null &&
+          weapon.type != null &&
+          weapon.name != 'Reforge Weapon');
+
+  await pgDb.execute('DROP TABLE IF EXISTS $tableName');
+  await pgDb.execute('CREATE TABLE $tableName ('
+      '${BgDb.WEAPONS_ID} BIGINT, '
+      '${BgDb.WEAPONS_NAME} TEXT, '
+      '${BgDb.WEAPONS_TYPE} INT, '
+      '${BgDb.WEAPONS_RARITY} INT)');
+  int count = 0;
+  await for (final Weapon weapon in weaponStream) {
+    count += await pgDb.execute('INSERT INTO $tableName VALUES ('
+        '${weapon.id}, '
+        '\$\$${weapon.name}\$\$, '
+        '${weapon.type.index}, '
+        '${weapon.rarity.index})');
+  }
+  print('Added $count entries to $tableName.');
+}
+
+/// Creates a table containing all armor pieces.
+_createArmorDatabase(lite.Database liteDb, pg.Connection pgDb) async {
+  final tableName = BgDb.TABLE_ARMOR;
+  print('Populating $tableName...');
+
+  final Stream<Armor> armorStream = liteDb
+      .query('SELECT json FROM DestinyInventoryItemDefinition')
+      .transform(new StreamTransformer<lite.Row, Armor>.fromHandlers(
+          handleData: (lite.Row row, EventSink<Armor> sink) {
+    final json = JSON.decode(row['json']);
+    final List<int> categories = json['itemCategoryHashes'];
+    if (categories.contains(20 /* armor category */)) {
+      final id = json['itemHash'];
+      final name = json['itemName'];
+      final clazz = CLASS_MAPPINGS[json['classType']];
+      final type = getArmorTypeFromCategories(categories);
+      final rarity = RARITY_MAPPINGS[json['tierType']];
+      sink.add(new Armor(id, name, clazz, type, rarity));
+    }
+  })).where((Armor armor) =>
+          armor.name != null && armor.clazz != null && armor.type != null);
+
+  await pgDb.execute('DROP TABLE IF EXISTS $tableName');
+  await pgDb.execute('CREATE TABLE $tableName ('
+      '${BgDb.ARMOR_ID} BIGINT, '
+      '${BgDb.ARMOR_NAME} TEXT, '
+      '${BgDb.ARMOR_CLASS} INT, '
+      '${BgDb.ARMOR_TYPE} INT, '
+      '${BgDb.ARMOR_RARITY} INT)');
+  int count = 0;
+  await for (final armor in armorStream) {
+    count += await pgDb.execute('INSERT INTO $tableName VALUES ('
+        '${armor.id}, '
+        '\$\$${armor.name}\$\$, '
+        '${armor.clazz.index}, '
+        '${armor.type.index}, '
+        '${armor.rarity.index})');
+  }
+  print('Added $count entries to $tableName.');
+}
+
+/// Utility to list item buckets.
+//ignore: unused_element
+_inspectBuckets(lite.Database liteDb) async {
+  await liteDb
+      .query('SELECT json FROM DestinyInventoryBucketDefinition')
+      .forEach((row) {
+    final json = JSON.decode(row['json']);
+    print(
+        '${json['bucketHash'].toString().padRight(15)} -- ${json['bucketName']}');
+  });
+}
+
+//// Utility to list inventory items.
+//ignore: unused_element
+_inspectItems(lite.Database liteDb) async {
+  await liteDb
+      .query('SELECT json FROM DestinyInventoryItemDefinition')
+      .forEach((row) {
+    final json = JSON.decode(row['json']);
+    final tier = json['tierType'];
+    final name = json['tierTypeName'];
+    print('$tier --> $name');
+    if (tier == 0) {
+      print(json['itemName']);
     }
   });
-  int count = 0;
-  await Future.forEach(entries, (entry) async {
-    count += await pgDb.execute(
-        'INSERT INTO $tableName VALUES (@id, @name, @type)', entry);
+}
+
+/// Utility to list item categories.
+//ignore: unused_element
+_inspectCategories(lite.Database liteDb) async {
+  await liteDb
+      .query('SELECT json FROM DestinyItemCategoryDefinition')
+      .forEach((row) {
+    final json = JSON.decode(row['json']);
+    final tier = json['itemCategoryHash'];
+    final name = json['title'];
+    print('$tier --> $name');
   });
-  print('Added $count entries to $tableName.');
 }
 
 main(List<String> args) async {
@@ -90,8 +180,9 @@ main(List<String> args) async {
   final pg.Connection pgDb = await pg.connect(params[_FLAG_PG_DB]);
 
   try {
-    await _createGrimoireCardDatabase(liteDb, pgDb);
-    await _createItemsDatabase(liteDb, pgDb);
+    await _createGrimoireDatabase(liteDb, pgDb);
+    await _createWeaponsDatabase(liteDb, pgDb);
+    await _createArmorDatabase(liteDb, pgDb);
   } finally {
     liteDb.close();
     pgDb.close();
