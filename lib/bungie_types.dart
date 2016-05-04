@@ -106,7 +106,7 @@ class ItemId {
   /// The item's hash value.
   final int hash;
 
-  ItemId(this.hash);
+  const ItemId(this.hash);
 
   @override
   String toString() => hash.toString();
@@ -144,7 +144,7 @@ class XurExoticItem {
   /// True if the item is an armor piece - otherwise it's a weapon.
   final bool isArmor;
 
-  XurExoticItem(this.id, this.isArmor);
+  const XurExoticItem(this.id, this.isArmor);
 }
 
 /// The character classes.
@@ -216,14 +216,44 @@ const Map<int, WeaponType> WEAPON_TYPE_MAPPINGS = const {
   18: WeaponType.SWORD
 };
 
+/// Returns a short name for the given weapon.
+String getWeaponTypeNickname(WeaponType type) {
+  switch (type) {
+    case WeaponType.AUTO:
+      return 'Auto';
+    case WeaponType.PULSE:
+      return 'Pulse';
+    case WeaponType.SCOUT:
+      return 'Scout';
+    case WeaponType.HAND_CANNON:
+      return 'HC';
+    case WeaponType.SNIPER:
+      return 'Sniper';
+    case WeaponType.FUSION:
+      return 'Fusion';
+    case WeaponType.SIDEARM:
+      return 'Sidearm';
+    case WeaponType.SHOTGUN:
+      return 'Shotgun';
+    case WeaponType.MACHINE_GUN:
+      return 'MG';
+    case WeaponType.ROCKET_LAUNCHER:
+      return 'RL';
+    case WeaponType.SWORD:
+      return 'Sword';
+    default:
+      throw 'Unknown weapon type: $type';
+  }
+}
+
 /// Represents a weapon.
-class Weapon {
+class Weapon implements Comparable {
   final ItemId id;
   final String name;
   final WeaponType type;
   final Rarity rarity;
 
-  Weapon(this.id, this.name, this.type, this.rarity);
+  const Weapon(this.id, this.name, this.type, this.rarity);
 
   bool get isPrimary =>
       type == WeaponType.AUTO ||
@@ -244,6 +274,11 @@ class Weapon {
 
   @override
   String toString() => '$name $type $rarity';
+
+  @override
+  int compareTo(Weapon other) {
+    return type.index - other.type.index;
+  }
 }
 
 /// The various types of armor pieces.
@@ -267,17 +302,22 @@ ArmorType getArmorTypeFromCategories(List<int> categories) {
 }
 
 /// Represents a piece of armor.
-class Armor {
+class Armor implements Comparable {
   final ItemId id;
   final String name;
   final Class clazz;
   final ArmorType type;
   final Rarity rarity;
 
-  Armor(this.id, this.name, this.clazz, this.type, this.rarity);
+  const Armor(this.id, this.name, this.clazz, this.type, this.rarity);
 
   @override
   String toString() => '$name $clazz $type $rarity';
+
+  @override
+  int compareTo(Armor other) {
+    return type.index - other.type.index;
+  }
 }
 
 /// The definition of a grimoire card.
@@ -286,7 +326,7 @@ class GrimoireCard {
   final String title;
   final String content;
 
-  GrimoireCard(this.id, this.title, this.content);
+  const GrimoireCard(this.id, this.title, this.content);
 
   @override
   String toString() => title;

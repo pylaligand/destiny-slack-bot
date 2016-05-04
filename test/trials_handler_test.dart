@@ -1,5 +1,6 @@
 // Copyright (c) 2016 P.Y. Laligand
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:mockito/mockito.dart';
@@ -7,6 +8,8 @@ import 'package:shelf/shelf.dart' as shelf;
 import 'package:test/test.dart';
 
 import '../lib/bungie_client.dart';
+import '../lib/bungie_database.dart';
+import '../lib/bungie_types.dart';
 import '../lib/guardian_gg_client.dart';
 import '../lib/trials_handler.dart';
 
@@ -17,51 +20,59 @@ final _CHARACTER = new Character('character_one', 'Hunter', new DateTime.now());
 final _SUBCLASS = 'Gunslinger';
 
 void main() {
-  _MockBungieClient bungie_client;
-  _MockGuardianGgClient guardian_gg_client;
+  _MockBungieDatabase database;
+  _MockBungieClient bungieClient;
+  _MockGuardianGgClient guardianGgClient;
+  Map<String, dynamic> context;
   TrialsHandler handler;
 
   setUp(() {
-    bungie_client = new _MockBungieClient();
-    guardian_gg_client = new _MockGuardianGgClient();
-    handler = new TrialsHandler.withClient(guardian_gg_client);
+    database = new _MockBungieDatabase();
+    bungieClient = new _MockBungieClient();
+    guardianGgClient = new _MockGuardianGgClient();
+    context = {
+      'bungie_client': bungieClient,
+      'bungie_database': database,
+      'text': _GAMERTAG
+    };
+    handler = new TrialsHandler.withClient(guardianGgClient);
   });
 
   tearDown(() {
-    bungie_client = null;
-    guardian_gg_client = null;
+    database = null;
+    bungieClient = null;
+    guardianGgClient = null;
+    context = null;
+    handler = null;
   });
 
   test('unknown player', () async {
-    when(bungie_client.getDestinyId(argThat(anything))).thenReturn(null);
-    final context = {'bungie_client': bungie_client, 'text': 'b0gus pla4yer'};
+    when(bungieClient.getDestinyId(argThat(anything))).thenReturn(null);
+    context['text'] = 'b0gus pla4yer';
     final json = await _getResponse(handler, context);
     expect(json['response_type'], isNot(equals('in_channel')));
     expect(json['text'], isNotNull);
-    verifyNoMoreInteractions(guardian_gg_client);
+    verifyNoMoreInteractions(guardianGgClient);
   });
 
   test('no Trials data', () async {
-    when(bungie_client.getDestinyId(argThat(equals(_GAMERTAG))))
+    when(bungieClient.getDestinyId(argThat(equals(_GAMERTAG))))
         .thenReturn(_DESTINY_ID);
-    when(guardian_gg_client.getTrialsStats(argThat(anything)))
+    when(guardianGgClient.getTrialsStats(argThat(anything)))
         .thenReturn(const <Guardian>[]);
-    final context = {'bungie_client': bungie_client, 'text': _GAMERTAG};
     final json = await _getResponse(handler, context);
     expect(json['response_type'], isNot(equals('in_channel')));
     expect(json['text'], isNotNull);
-    verify(
-        guardian_gg_client.getTrialsStats(argThat(equals(_DESTINY_ID.token))));
+    verify(guardianGgClient.getTrialsStats(argThat(equals(_DESTINY_ID.token))));
   });
 
   test('unknown subclass', () async {
-    when(bungie_client.getDestinyId(argThat(equals(_GAMERTAG))))
+    when(bungieClient.getDestinyId(argThat(equals(_GAMERTAG))))
         .thenReturn(_DESTINY_ID);
-    when(bungie_client.getLastPlayedCharacter(argThat(equals(_DESTINY_ID))))
+    when(bungieClient.getLastPlayedCharacter(argThat(equals(_DESTINY_ID))))
         .thenReturn(null);
-    when(guardian_gg_client.getTrialsStats(argThat(equals(_DESTINY_ID.token))))
+    when(guardianGgClient.getTrialsStats(argThat(equals(_DESTINY_ID.token))))
         .thenReturn([_GUARDIAN]);
-    final context = {'bungie_client': bungie_client, 'text': _GAMERTAG};
     final json = await _getResponse(handler, context);
     expect(json['response_type'], equals('in_channel'));
     expect(json['text'], isNotNull);
@@ -69,18 +80,21 @@ void main() {
   });
 
   test('found team', () async {
-    when(bungie_client.getDestinyId(argThat(equals(_GAMERTAG))))
+    when(bungieClient.getDestinyId(argThat(equals(_GAMERTAG))))
         .thenReturn(_DESTINY_ID);
-    when(bungie_client.getLastPlayedCharacter(argThat(equals(_DESTINY_ID))))
+    when(bungieClient.getLastPlayedCharacter(argThat(equals(_DESTINY_ID))))
         .thenReturn(_CHARACTER);
     final inventory = new _MockInventory();
     when(inventory.subclass).thenReturn(_SUBCLASS);
-    when(bungie_client.getInventory(
+    when(inventory.armorIds).thenReturn(const []);
+    when(inventory.weaponIds).thenReturn(const []);
+    when(bungieClient.getInventory(
             argThat(equals(_DESTINY_ID)), argThat(equals(_CHARACTER.id))))
         .thenReturn(inventory);
-    when(guardian_gg_client.getTrialsStats(argThat(equals(_DESTINY_ID.token))))
+    when(guardianGgClient.getTrialsStats(argThat(equals(_DESTINY_ID.token))))
         .thenReturn([_GUARDIAN]);
-    final context = {'bungie_client': bungie_client, 'text': _GAMERTAG};
+    when(database.getArmorPieces(any)).thenReturn(new Stream.fromIterable([]));
+    when(database.getWeapons(any)).thenReturn(new Stream.fromIterable([]));
     final json = await _getResponse(handler, context);
     expect(json['response_type'], equals('in_channel'));
     expect(json['text'], isNotNull);
@@ -97,6 +111,8 @@ dynamic _getResponse(
   expect(response.statusCode, equals(200));
   return JSON.decode(await response.readAsString());
 }
+
+class _MockBungieDatabase extends Mock implements BungieDatabase {}
 
 class _MockBungieClient extends Mock implements BungieClient {}
 
