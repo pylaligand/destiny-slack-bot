@@ -7,6 +7,8 @@ import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import 'bungie_client.dart';
+import 'bungie_database.dart';
+import 'bungie_types.dart';
 import 'guardian_gg_client.dart';
 import 'slack_command_handler.dart';
 import 'slack_format.dart';
@@ -48,12 +50,23 @@ class TrialsHandler extends SlackCommandHandler {
       return createTextResponse('Could not find Trials data for "$gamertag"',
           private: true);
     }
-    final trialsGuardians = <TrialsGuardian>[];
+
+    // Add inventory data.
+    final BungieDatabase database = params['bungie_database'];
+    await database.connect();
+    final trialsGuardians = <_TrialsGuardian>[];
     await Future.forEach(guardians, (guardian) async {
       final id = new DestinyId(onXbox, guardian.destinyId);
       final inventory = (await _getLastInventory(client, id));
       final subclass = inventory?.subclass ?? 'Unknown';
-      trialsGuardians.add(new TrialsGuardian(guardian, subclass));
+      final weapons = inventory != null
+          ? await database.getWeapons(inventory.weaponIds).toList()
+          : [];
+      final armors = inventory != null
+          ? await database.getArmorPieces(inventory.armorIds).toList()
+          : [];
+      trialsGuardians.add(new _TrialsGuardian(
+          guardian, subclass, weapons..sort(), armors..sort()));
     });
     trialsGuardians.forEach((g) => _log.info(g));
 
@@ -79,28 +92,73 @@ class TrialsHandler extends SlackCommandHandler {
   }
 
   /// Returns the formatted guardian list for display in a bot message.
-  static String _formatReport(List<TrialsGuardian> guardians) {
-    final width =
-        guardians.map((guardian) => guardian.name.length).reduce(math.max);
+  static String _formatReport(List<_TrialsGuardian> guardians) {
+    const url = 'https://my.trials.report/ps';
+    maxLength(Iterable<String> content) =>
+        content.map((item) => item.length).reduce(math.max);
+    final maxNameWidth = maxLength(guardians.map((guardian) => guardian.name));
+    final maxSubclassWidth =
+        maxLength(guardians.map((guardian) => guardian.subclass));
+    final maxPrimaryWidth = maxLength(
+        guardians.map((guardian) => _getWeaponLabel(guardian.primary)));
+    final maxSpecialWidth = maxLength(
+        guardians.map((guardian) => _getWeaponLabel(guardian.special)));
+    final maxHeavyWidth =
+        maxLength(guardians.map((guardian) => _getWeaponLabel(guardian.heavy)));
     // Note that the URL below specifies 'ps' but will automatically redirect if
     // the user is on Xbox.
     final list = guardians.map((g) {
-      final blanks = width - g.name.length;
-      return '<https://my.trials.report/ps/${g.name}|${g.name}>${''.padRight(blanks)}  ${g.elo.toString().padLeft(4)}  ${g.kd.toString().padRight(4, '0')}  ${g.subclass}';
+      final nameBlanks = maxNameWidth - g.name.length;
+      String result = '<$url/${g.name}|${g.name}>${''.padRight(nameBlanks)}'
+          '  ${g.elo.toString().padLeft(4)}'
+          '  ${g.kd.toString().padRight(4, '0')}'
+          '  ${g.subclass.padRight(maxSubclassWidth)}'
+          '  |'
+          '  ${_getWeaponLabel(g.primary).padRight(maxPrimaryWidth)}'
+          '  ${_getWeaponLabel(g.special).padRight(maxSpecialWidth)}'
+          '  ${_getWeaponLabel(g.heavy).padRight(maxHeavyWidth)}';
+      final exoticArmor = g.armors.firstWhere(
+          (armor) => armor.rarity == Rarity.EXOTIC,
+          orElse: () => null);
+      if (exoticArmor != null) {
+        result += '  |  ${exoticArmor.name}';
+      }
+      return result;
     }).join('\n');
     return '```$list```';
   }
 }
 
-/// Representation of a player in ToO.
-class TrialsGuardian extends Guardian {
-  final String subclass;
+const _UNKNOWN_WEAPON =
+    const Weapon(const ItemId(-1), 'Unknown', WeaponType.AUTO, Rarity.COMMON);
 
-  TrialsGuardian(Guardian guardian, this.subclass)
+/// Representation of a player in ToO.
+class _TrialsGuardian extends Guardian {
+  final String subclass;
+  final List<Weapon> weapons;
+  final List<Armor> armors;
+
+  _TrialsGuardian(Guardian guardian, this.subclass, this.weapons, this.armors)
       : super(guardian.destinyId, guardian.name, guardian.elo, guardian.kd);
+
+  Weapon get primary => weapons.firstWhere((weapon) => weapon.isPrimary,
+      orElse: () => _UNKNOWN_WEAPON);
+
+  Weapon get special => weapons.firstWhere((weapon) => weapon.isSpecial,
+      orElse: () => _UNKNOWN_WEAPON);
+
+  Weapon get heavy => weapons.firstWhere((weapon) => weapon.isHeavy,
+      orElse: () => _UNKNOWN_WEAPON);
 
   @override
   String toString() {
     return '$name[$elo, $kd, $subclass]';
   }
+}
+
+/// Returns the display label for the given [weapon].
+String _getWeaponLabel(Weapon weapon) {
+  return weapon.rarity == Rarity.EXOTIC || weapon == _UNKNOWN_WEAPON
+      ? weapon.name
+      : getWeaponTypeNickname(weapon.type);
 }
