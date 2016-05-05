@@ -15,7 +15,8 @@ const _FLAG_LITE_DB = 'sqlite_db_file';
 const _FLAG_PG_DB = 'postgres_uri';
 
 /// Creates a table containing all the Grimoire cards.
-_createGrimoireDatabase(lite.Database liteDb, pg.Connection pgDb) async {
+Future<int> _createGrimoireDatabase(
+    lite.Database liteDb, pg.Connection pgDb) async {
   const tableName = BgDb.TABLE_GRIMOIRE;
   print('Populating $tableName...');
 
@@ -41,10 +42,12 @@ _createGrimoireDatabase(lite.Database liteDb, pg.Connection pgDb) async {
         '\$\$${card.content}\$\$)');
   }
   print('Added $count entries to $tableName.');
+  return count;
 }
 
 /// Creates a table containing all weapons.
-_createWeaponsDatabase(lite.Database liteDb, pg.Connection pgDb) async {
+Future<int> _createWeaponsDatabase(
+    lite.Database liteDb, pg.Connection pgDb) async {
   final tableName = BgDb.TABLE_WEAPONS;
   print('Populating $tableName...');
 
@@ -81,10 +84,12 @@ _createWeaponsDatabase(lite.Database liteDb, pg.Connection pgDb) async {
         '${weapon.rarity.index})');
   }
   print('Added $count entries to $tableName.');
+  return count;
 }
 
 /// Creates a table containing all armor pieces.
-_createArmorDatabase(lite.Database liteDb, pg.Connection pgDb) async {
+Future<int> _createArmorDatabase(
+    lite.Database liteDb, pg.Connection pgDb) async {
   final tableName = BgDb.TABLE_ARMOR;
   print('Populating $tableName...');
 
@@ -122,6 +127,7 @@ _createArmorDatabase(lite.Database liteDb, pg.Connection pgDb) async {
         '${armor.rarity.index})');
   }
   print('Added $count entries to $tableName.');
+  return count;
 }
 
 /// Utility to list item buckets.
@@ -180,9 +186,10 @@ main(List<String> args) async {
   final pg.Connection pgDb = await pg.connect(params[_FLAG_PG_DB]);
 
   try {
-    await _createGrimoireDatabase(liteDb, pgDb);
-    await _createWeaponsDatabase(liteDb, pgDb);
-    await _createArmorDatabase(liteDb, pgDb);
+    final entryCount = await _createGrimoireDatabase(liteDb, pgDb) +
+        await _createWeaponsDatabase(liteDb, pgDb) +
+        await _createArmorDatabase(liteDb, pgDb);
+    print('Inserted $entryCount entries.');
   } finally {
     liteDb.close();
     pgDb.close();
