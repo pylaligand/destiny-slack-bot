@@ -57,8 +57,9 @@ see next section
 ## Database
 
 The world database is created from the SQLite world database provided in the
-[manifest](http://www.bungie.net/platform/Destiny/Manifest/). It is converted
-to a Postgres database with `tool/create_database`.
+[manifest](http://www.bungie.net/platform/Destiny/Manifest/) and downloaded via
+`tool/download_world_content`. It is converted to a Postgres database with
+`tool/create_database`.
 
 A local Postgres instance will be needed for testing, whereas a live instance
 can be set up on [Heroku](https://www.heroku.com/postgres). The local instance

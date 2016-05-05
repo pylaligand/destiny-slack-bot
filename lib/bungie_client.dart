@@ -167,7 +167,7 @@ class BungieClient {
   }
 
   dynamic _getJson(String url) async {
-    var body = await http.read(url, headers: {'X-API-Key': this._apiKey});
+    final body = await http.read(url, headers: {'X-API-Key': this._apiKey});
     try {
       return JSON.decode(body);
     } on FormatException catch (_) {
