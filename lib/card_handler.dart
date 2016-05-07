@@ -7,6 +7,7 @@ import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import 'bungie_database.dart';
+import 'context_params.dart' as param;
 import 'slack_command_handler.dart';
 import 'slack_format.dart';
 
@@ -17,7 +18,7 @@ class CardHandler extends SlackCommandHandler {
   @override
   Future<shelf.Response> handle(shelf.Request request) async {
     final params = request.context;
-    final BungieDatabase database = params['bungie_database'];
+    final BungieDatabase database = params[param.BUNGIE_DATABASE];
     await database.connect();
     final count = await database.getGrimoireCardCount();
     final index = new Random().nextInt(count);

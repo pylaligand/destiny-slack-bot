@@ -9,6 +9,7 @@ import 'package:shelf/shelf.dart' as shelf;
 import 'bungie_client.dart';
 import 'bungie_database.dart';
 import 'bungie_types.dart';
+import 'context_params.dart' as param;
 import 'guardian_gg_client.dart';
 import 'slack_command_handler.dart';
 import 'slack_format.dart';
@@ -28,11 +29,11 @@ class TrialsHandler extends SlackCommandHandler {
   @override
   Future<shelf.Response> handle(shelf.Request request) async {
     final params = request.context;
-    final String gamertag = params['text'];
-    _log.info('@${params['user_name']} looking up "$gamertag"');
+    final String gamertag = params[param.SLACK_TEXT];
+    _log.info('@${params[param.SLACK_USERNAME]} looking up "$gamertag"');
 
     // Look up the Destiny ID.
-    final BungieClient client = params['bungie_client'];
+    final BungieClient client = params[param.BUNGIE_CLIENT];
     final destinyId = await client.getDestinyId(gamertag);
     if (destinyId == null) {
       _log.warning('Player not found');
@@ -52,7 +53,7 @@ class TrialsHandler extends SlackCommandHandler {
     }
 
     // Add inventory data.
-    final BungieDatabase database = params['bungie_database'];
+    final BungieDatabase database = params[param.BUNGIE_DATABASE];
     await database.connect();
     final trialsGuardians = <_TrialsGuardian>[];
     await Future.forEach(guardians, (guardian) async {

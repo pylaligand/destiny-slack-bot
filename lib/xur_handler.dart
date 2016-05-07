@@ -7,6 +7,7 @@ import 'package:shelf/shelf.dart' as shelf;
 
 import 'bungie_client.dart';
 import 'bungie_database.dart';
+import 'context_params.dart' as param;
 import 'slack_command_handler.dart';
 import 'slack_format.dart';
 
@@ -17,8 +18,8 @@ class XurHandler extends SlackCommandHandler {
   @override
   Future<shelf.Response> handle(shelf.Request request) async {
     final params = request.context;
-    final BungieClient client = params['bungie_client'];
-    final BungieDatabase database = params['bungie_database'];
+    final BungieClient client = params[param.BUNGIE_CLIENT];
+    final BungieDatabase database = params[param.BUNGIE_DATABASE];
     await database.connect();
     final inventory = await client.getXurInventory();
     if (inventory == null || inventory.isEmpty) {

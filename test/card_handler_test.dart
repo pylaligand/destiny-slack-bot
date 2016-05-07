@@ -9,6 +9,7 @@ import 'package:test/test.dart';
 import '../lib/bungie_database.dart';
 import '../lib/bungie_types.dart';
 import '../lib/card_handler.dart';
+import '../lib/context_params.dart' as param;
 
 void main() {
   _MockBungieDatabase database;
@@ -17,7 +18,7 @@ void main() {
 
   setUp(() {
     database = new _MockBungieDatabase();
-    context = {'bungie_database': database};
+    context = {param.BUNGIE_DATABASE: database};
     handler = new CardHandler();
   });
 

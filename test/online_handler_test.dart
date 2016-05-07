@@ -7,6 +7,7 @@ import 'package:shelf/shelf.dart' as shelf;
 import 'package:test/test.dart';
 
 import '../lib/bungie_client.dart';
+import '../lib/context_params.dart' as param;
 import '../lib/online_handler.dart';
 
 const _CLAN_ID = '123456789';
@@ -25,28 +26,30 @@ final _CHARACTER_TWO_OLD = new Character(
 
 void main() {
   _MockBungieClient client;
+  Map<String, dynamic> context;
   OnlineHandler handler;
 
   setUp(() {
     client = new _MockBungieClient();
+    context = {param.BUNGIE_CLIENT: client, param.SLACK_TEXT: 'xbl'};
     handler = new OnlineHandler(_CLAN_ID);
   });
 
   tearDown(() {
     client = null;
+    context = null;
     handler = null;
   });
 
   test('no member in clan', () async {
     when(client.getClanRoster(_CLAN_ID, _ON_XBOX)).thenReturn(<ClanMember>[]);
-    final context = {'bungie_client': client, 'text': 'xbl'};
     final json = await _getResponse(handler, context);
     expect(json['response_type'], equals('in_channel'));
     expect(json['attachments'], isNotNull);
   });
 
   test('invalid platform', () async {
-    final context = {'bungie_client': client, 'text': 'bogus!'};
+    context[param.SLACK_TEXT] = 'bogus!';
     final json = await _getResponse(handler, context);
     expect(json['response_type'], isNot(equals('in_channel')));
     expect(json['text'], isNotNull);
@@ -60,7 +63,6 @@ void main() {
         .thenReturn(_CHARACTER_ONE);
     when(client.getLastPlayedCharacter(_MEMBER_TWO.id))
         .thenReturn(_CHARACTER_TWO_OLD);
-    final context = {'bungie_client': client, 'text': 'xbl'};
     final json = await _getResponse(handler, context);
     expect(json['response_type'], equals('in_channel'));
     expect(json['text'], isNotNull);
@@ -75,7 +77,6 @@ void main() {
         .thenReturn(_CHARACTER_ONE_OLD);
     when(client.getLastPlayedCharacter(_MEMBER_TWO.id))
         .thenReturn(_CHARACTER_TWO_OLD);
-    final context = {'bungie_client': client, 'text': 'xbl'};
     final json = await _getResponse(handler, context);
     expect(json['response_type'], equals('in_channel'));
     expect(json['attachments'], isNotNull);
@@ -84,7 +85,6 @@ void main() {
   test('no character data', () async {
     when(client.getClanRoster(_CLAN_ID, _ON_XBOX))
         .thenReturn(<ClanMember>[_MEMBER_ONE, _MEMBER_TWO]);
-    final context = {'bungie_client': client, 'text': 'xbl'};
     final json = await _getResponse(handler, context);
     expect(json['response_type'], equals('in_channel'));
     expect(json['attachments'], isNotNull);

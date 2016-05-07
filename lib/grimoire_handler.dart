@@ -6,6 +6,7 @@ import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import 'bungie_client.dart';
+import 'context_params.dart' as param;
 import 'slack_command_handler.dart';
 import 'slack_format.dart';
 
@@ -16,9 +17,9 @@ class GrimoireHandler extends SlackCommandHandler {
   @override
   Future<shelf.Response> handle(shelf.Request request) async {
     final params = request.context;
-    final BungieClient client = params['bungie_client'];
-    final String userName = params['user_name'];
-    final String gamertag = _getGamertag(userName, params['text']);
+    final BungieClient client = params[param.BUNGIE_CLIENT];
+    final String userName = params[param.SLACK_USERNAME];
+    final String gamertag = _getGamertag(userName, params[param.SLACK_TEXT]);
 
     _log.info('@$userName looking up "$gamertag"');
     lookUp() async {

@@ -10,6 +10,7 @@ import 'package:test/test.dart';
 import '../lib/bungie_client.dart';
 import '../lib/bungie_database.dart';
 import '../lib/bungie_types.dart';
+import '../lib/context_params.dart' as param;
 import '../lib/guardian_gg_client.dart';
 import '../lib/trials_handler.dart';
 
@@ -31,9 +32,9 @@ void main() {
     bungieClient = new _MockBungieClient();
     guardianGgClient = new _MockGuardianGgClient();
     context = {
-      'bungie_client': bungieClient,
-      'bungie_database': database,
-      'text': _GAMERTAG
+      param.BUNGIE_CLIENT: bungieClient,
+      param.BUNGIE_DATABASE: database,
+      param.SLACK_TEXT: _GAMERTAG
     };
     handler = new TrialsHandler.withClient(guardianGgClient);
   });
@@ -48,7 +49,7 @@ void main() {
 
   test('unknown player', () async {
     when(bungieClient.getDestinyId(argThat(anything))).thenReturn(null);
-    context['text'] = 'b0gus pla4yer';
+    context[param.SLACK_TEXT] = 'b0gus pla4yer';
     final json = await _getResponse(handler, context);
     expect(json['response_type'], isNot(equals('in_channel')));
     expect(json['text'], isNotNull);

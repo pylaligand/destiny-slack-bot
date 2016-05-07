@@ -26,7 +26,9 @@ class SlackMiddleware {
             _log.warning('Invalid token: $requestToken');
             return new shelf.Response.forbidden('Invalid token');
           }
-          return handler(request.change(context: params));
+          final Map<String, String> context = {};
+          params.forEach((key, value) => context['slack_$key'] = value);
+          return handler(request.change(context: context));
         };
       };
 }

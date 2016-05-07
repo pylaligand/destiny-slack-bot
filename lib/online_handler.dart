@@ -6,6 +6,7 @@ import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import 'bungie_client.dart';
+import 'context_params.dart' as param;
 import 'slack_command_handler.dart';
 import 'slack_format.dart';
 
@@ -22,9 +23,10 @@ class OnlineHandler extends SlackCommandHandler {
   @override
   Future<shelf.Response> handle(shelf.Request request) async {
     final params = request.context;
-    final BungieClient client = params['bungie_client'];
-    final option = params['text'];
-    _log.info('@${params['user_name']} viewing online guardians on $option');
+    final BungieClient client = params[param.BUNGIE_CLIENT];
+    final option = params[param.SLACK_TEXT];
+    _log.info(
+        '@${params[param.SLACK_USERNAME]} viewing online guardians on $option');
     if (option != _OPTION_XBL && option != _OPTION_PSN) {
       _log.warning('Invalid platform identifier');
       return createTextResponse('Err, that is not a valid platform!',
