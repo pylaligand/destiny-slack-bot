@@ -17,7 +17,7 @@ const _STALLING_MESSAGES = const [
   'Hold on a second, yesssssss?',
 ];
 
-const _RESPONSE_TIMEOUT = const Duration(seconds: 3);
+const _RESPONSE_TIMEOUT = const Duration(seconds: 2, milliseconds: 500);
 
 /// Base class for command handlers.
 ///
