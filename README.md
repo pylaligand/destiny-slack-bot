@@ -53,6 +53,8 @@ page on bungie.net, which has the form
 `https://www.bungie.net/en/Clan/Forum/{clan_id}`
 - `DATABASE_URL`: URI of the PostgreSQL database holding Destiny world data -
 see next section
+- `USE_DELAYED_RESPONSES`: whether to use a [delayed response](https://api.slack.com/slash-commands#responding_to_a_command)
+when a query takes too long
 
 ## Database
 
@@ -79,3 +81,7 @@ environment variables:
 ```sh
 PARAM1=foo123 PARAM2=bar456 pub run bin/server.dart
 ```
+
+Note that you will likely want to set `USE_DELAYED_RESPONSES` to `false` when
+testing locally so that you can receive command results with whichever tool you
+use (e.g. http client GUI) to send the requests.
