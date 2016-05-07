@@ -2,9 +2,7 @@ language: dart
 dart:
   - stable
 script:
-  - pub run sqlite:install --package-root .
-  - dartanalyzer --lints --fatal-warnings --fatal-hints bin/server.dart lib/*.dart test/*.dart
-  - pub run test
+  - ./travis.sh
 branches:
   only:
     - master
