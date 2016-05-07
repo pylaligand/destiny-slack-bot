@@ -19,19 +19,26 @@ class XurHandler extends SlackCommandHandler {
   Future<shelf.Response> handle(shelf.Request request) async {
     final params = request.context;
     final BungieClient client = params[param.BUNGIE_CLIENT];
-    final BungieDatabase database = params[param.BUNGIE_DATABASE];
-    await database.connect();
     final inventory = await client.getXurInventory();
     if (inventory == null || inventory.isEmpty) {
       _log.info('Xur is wandering...');
       return createTextResponse('Xur is not available at the moment...');
     }
-    final items = (await Future.wait(inventory.map((XurExoticItem item) async =>
-            item.isArmor
-                ? (await database.getArmorPiece(item.id))?.name
-                : (await database.getWeapon(item.id))?.name)))
-        .where((item) => item != null)
-        .toList();
+    lookUpItems() async {
+      final BungieDatabase database = params[param.BUNGIE_DATABASE];
+      await database.connect();
+      try {
+        return (await Future.wait(inventory.map((XurExoticItem item) async =>
+                item.isArmor
+                    ? (await database.getArmorPiece(item.id))?.name
+                    : (await database.getWeapon(item.id))?.name)))
+            .where((item) => item != null)
+            .toList();
+      } finally {
+        database.close();
+      }
+    }
+    final items = await lookUpItems();
     _log.info('Items:');
     items.forEach((item) => _log.info(' - $item'));
     return createTextResponse(_formatItems(items));

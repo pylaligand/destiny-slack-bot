@@ -18,15 +18,23 @@ class CardHandler extends SlackCommandHandler {
   @override
   Future<shelf.Response> handle(shelf.Request request) async {
     final params = request.context;
-    final BungieDatabase database = params[param.BUNGIE_DATABASE];
-    await database.connect();
-    final count = await database.getGrimoireCardCount();
-    final index = new Random().nextInt(count);
-    final card = await database.getGrimoireCard(index);
+    pickCard() async {
+      final BungieDatabase database = params[param.BUNGIE_DATABASE];
+      try {
+        await database.connect();
+        final count = await database.getGrimoireCardCount();
+        final index = new Random().nextInt(count);
+        final card = await database.getGrimoireCard(index);
+        _log.info('Selecting card $index/$count, id is ${card.id}');
+        return card;
+      } finally {
+        database.close();
+      }
+    }
+    final card = await pickCard();
     final String title = _unescape(card.title);
     final String text = _unescape(card.content);
     final url = 'http://destiny-grimoire.info/#Card-${card.id.hash}';
-    _log.info('Selecting card $index/$count, id is ${card.id}');
     return createAttachmentResponse(
         {'title': title, 'title_link': url, 'text': text, 'fallback': title});
   }
