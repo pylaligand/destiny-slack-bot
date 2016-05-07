@@ -7,6 +7,8 @@ import 'package:postgresql/postgresql.dart' as pg;
 
 import 'bungie_types.dart';
 
+export 'bungie_types.dart';
+
 /// Schemas of the various tables in the database.
 class BgDb {
   static const TABLE_GRIMOIRE = 'grimoire';

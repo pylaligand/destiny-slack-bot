@@ -39,6 +39,8 @@ void main() {
   final bungieApiKey = _getConfigValue('BUNGIE_API_KEY');
   final bungieClanId = _getConfigValue('BUNGIE_CLAN_ID');
   final worldDatabase = _getConfigValue('DATABASE_URL');
+  final useDelayedResponses =
+      _getConfigValue('USE_DELAYED_RESPONSES') == 'true';
 
   final commandRouter = router()
     ..get('/', (_) => new shelf.Response.ok('This is the Destiny bot!'))
@@ -52,7 +54,7 @@ void main() {
       .addMiddleware(
           shelf.logRequests(logger: (String message, _) => log.info(message)))
       .addMiddleware(BungieMiddleWare.get(bungieApiKey, worldDatabase))
-      .addMiddleware(SlackMiddleware.get(slackTokens))
+      .addMiddleware(SlackMiddleware.get(slackTokens, useDelayedResponses))
       .addHandler(commandRouter.handler);
 
   runZoned(() {

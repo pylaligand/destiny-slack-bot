@@ -21,7 +21,7 @@ void main() {
   }
 
   setUp(() {
-    middleware = SlackMiddleware.get(_TOKENS);
+    middleware = SlackMiddleware.get(_TOKENS, false);
   });
 
   tearDown(() {

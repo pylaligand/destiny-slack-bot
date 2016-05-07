@@ -56,19 +56,23 @@ class TrialsHandler extends SlackCommandHandler {
     final BungieDatabase database = params[param.BUNGIE_DATABASE];
     await database.connect();
     final trialsGuardians = <_TrialsGuardian>[];
-    await Future.forEach(guardians, (guardian) async {
-      final id = new DestinyId(onXbox, guardian.destinyId);
-      final inventory = (await _getLastInventory(client, id));
-      final subclass = inventory?.subclass ?? 'Unknown';
-      final weapons = inventory != null
-          ? await database.getWeapons(inventory.weaponIds).toList()
-          : [];
-      final armors = inventory != null
-          ? await database.getArmorPieces(inventory.armorIds).toList()
-          : [];
-      trialsGuardians.add(new _TrialsGuardian(
-          guardian, subclass, weapons..sort(), armors..sort()));
-    });
+    try {
+      await Future.forEach(guardians, (guardian) async {
+        final id = new DestinyId(onXbox, guardian.destinyId);
+        final inventory = await _getLastInventory(client, id);
+        final subclass = inventory?.subclass ?? 'Unknown';
+        final weapons = inventory != null
+            ? await database.getWeapons(inventory.weaponIds).toList()
+            : [];
+        final armors = inventory != null
+            ? await database.getArmorPieces(inventory.armorIds).toList()
+            : [];
+        trialsGuardians.add(new _TrialsGuardian(
+            guardian, subclass, weapons..sort(), armors..sort()));
+      });
+    } finally {
+      database.close();
+    }
     trialsGuardians.forEach((g) => _log.info(g));
 
     return createTextResponse(_formatReport(trialsGuardians));
