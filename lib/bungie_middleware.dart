@@ -6,6 +6,7 @@ import 'package:shelf/shelf.dart' as shelf;
 
 import 'bungie_client.dart';
 import 'bungie_database.dart';
+import 'context_params.dart' as param;
 
 /// Attaches an actionable BungieClient to incoming requests.
 class BungieMiddleWare {
@@ -16,8 +17,8 @@ class BungieMiddleWare {
           bool shouldCloseDatabase = true;
           try {
             final result = handler(request.change(context: {
-              'bungie_client': new BungieClient(apiKey),
-              'bungie_database': database
+              param.BUNGIE_CLIENT: new BungieClient(apiKey),
+              param.BUNGIE_DATABASE: database
             }));
             if (result is Future) {
               shouldCloseDatabase = false;

@@ -7,6 +7,7 @@ import 'package:shelf/shelf.dart' as shelf;
 import 'package:test/test.dart';
 
 import '../lib/bungie_client.dart';
+import '../lib/context_params.dart' as param;
 import '../lib/grimoire_handler.dart';
 
 const _SCORE = 4860;
@@ -23,7 +24,11 @@ void main() {
 
   setUp(() {
     client = new _MockBungieClient();
-    context = {'bungie_client': client};
+    context = {
+      param.BUNGIE_CLIENT: client,
+      param.SLACK_USERNAME: _USER_ONE,
+      param.SLACK_TEXT: _USER_TWO_GAMERTAG
+    };
     handler = new GrimoireHandler();
   });
 
@@ -34,8 +39,6 @@ void main() {
 
   test('unknown gamertag', () async {
     when(client.getDestinyId(any)).thenReturn(null);
-    context['user_name'] = _USER_ONE;
-    context['text'] = _USER_TWO_GAMERTAG;
     final json = await _getResponse(handler, context);
     expect(json['response_type'], isNot(equals('in_channel')));
   });
@@ -43,8 +46,6 @@ void main() {
   test('cannot find score', () async {
     when(client.getDestinyId(_USER_TWO_GAMERTAG)).thenReturn(_DESTINY_ID);
     when(client.getGrimoireScore(any)).thenReturn(null);
-    context['user_name'] = _USER_ONE;
-    context['text'] = _USER_TWO_GAMERTAG;
     final json = await _getResponse(handler, context);
     expect(json['response_type'], isNot(equals('in_channel')));
   });
@@ -52,8 +53,6 @@ void main() {
   test('get score', () async {
     when(client.getDestinyId(_USER_TWO_GAMERTAG)).thenReturn(_DESTINY_ID);
     when(client.getGrimoireScore(_DESTINY_ID)).thenReturn(_SCORE);
-    context['user_name'] = _USER_ONE;
-    context['text'] = _USER_TWO_GAMERTAG;
     final json = await _getResponse(handler, context);
     expect(json['response_type'], equals('in_channel'));
     expect(json['text'], contains(_USER_TWO_GAMERTAG));
@@ -63,8 +62,7 @@ void main() {
   test('fall back to username', () async {
     when(client.getDestinyId(_USER_ONE)).thenReturn(_DESTINY_ID);
     when(client.getGrimoireScore(_DESTINY_ID)).thenReturn(_SCORE);
-    context['user_name'] = _USER_ONE;
-    context['text'] = '';
+    context[param.SLACK_TEXT] = '';
     final json = await _getResponse(handler, context);
     expect(json['response_type'], equals('in_channel'));
     expect(json['text'], contains(_USER_ONE));
@@ -74,7 +72,7 @@ void main() {
   test('fall back to username without text', () async {
     when(client.getDestinyId(_USER_ONE)).thenReturn(_DESTINY_ID);
     when(client.getGrimoireScore(_DESTINY_ID)).thenReturn(_SCORE);
-    context['user_name'] = _USER_ONE;
+    context.remove(param.SLACK_TEXT);
     final json = await _getResponse(handler, context);
     expect(json['response_type'], equals('in_channel'));
     expect(json['text'], contains(_USER_ONE));
@@ -84,8 +82,8 @@ void main() {
   test('replace underscores', () async {
     when(client.getDestinyId(_USER_TWO_GAMERTAG)).thenReturn(_DESTINY_ID);
     when(client.getGrimoireScore(_DESTINY_ID)).thenReturn(_SCORE);
-    context['user_name'] = _USER_TWO;
-    context['text'] = '';
+    context[param.SLACK_USERNAME] = _USER_TWO;
+    context[param.SLACK_TEXT] = '';
     final json = await _getResponse(handler, context);
     expect(json['response_type'], equals('in_channel'));
     expect(json['text'], contains(_USER_TWO));
@@ -95,8 +93,8 @@ void main() {
   test('understands @-mentions', () async {
     when(client.getDestinyId(_USER_ONE)).thenReturn(_DESTINY_ID);
     when(client.getGrimoireScore(_DESTINY_ID)).thenReturn(_SCORE);
-    context['user_name'] = _USER_TWO;
-    context['text'] = _AT_USER_ONE;
+    context[param.SLACK_USERNAME] = _USER_TWO;
+    context[param.SLACK_TEXT] = _AT_USER_ONE;
     final json = await _getResponse(handler, context);
     expect(json['response_type'], equals('in_channel'));
     expect(json['text'], contains(_USER_ONE));

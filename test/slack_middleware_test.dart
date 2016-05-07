@@ -77,7 +77,7 @@ void main() {
         headers: {'content-type': 'application/x-www-form-urlencoded'});
     final response = await middleware(testHandler)(request);
     expect(handledRequest, isNot(same(request)));
-    expect(handledRequest.context, containsPair('foo', 'bar'));
+    expect(handledRequest.context, containsPair('slack_foo', 'bar'));
     expect(response, same(_RESPONSE));
   });
 }
