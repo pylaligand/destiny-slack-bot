@@ -1,18 +1,17 @@
 // Copyright (c) 2016 P.Y. Laligand
 
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:mockito/mockito.dart';
-import 'package:shelf/shelf.dart' as shelf;
 import 'package:test/test.dart';
 
 import '../lib/bungie_client.dart';
-import '../lib/bungie_database.dart';
 import '../lib/bungie_types.dart';
 import '../lib/context_params.dart' as param;
 import '../lib/guardian_gg_client.dart';
 import '../lib/trials_handler.dart';
+
+import 'utils.dart';
 
 const _GAMERTAG = 'd4 pl4yer';
 const _DESTINY_ID = const DestinyId(true, 'abcdefghijkl');
@@ -21,15 +20,15 @@ final _CHARACTER = new Character('character_one', 'Hunter', new DateTime.now());
 final _SUBCLASS = 'Gunslinger';
 
 void main() {
-  _MockBungieDatabase database;
-  _MockBungieClient bungieClient;
+  MockBungieDatabase database;
+  MockBungieClient bungieClient;
   _MockGuardianGgClient guardianGgClient;
   Map<String, dynamic> context;
   TrialsHandler handler;
 
   setUp(() {
-    database = new _MockBungieDatabase();
-    bungieClient = new _MockBungieClient();
+    database = new MockBungieDatabase();
+    bungieClient = new MockBungieClient();
     guardianGgClient = new _MockGuardianGgClient();
     context = {
       param.BUNGIE_CLIENT: bungieClient,
@@ -50,7 +49,7 @@ void main() {
   test('unknown player', () async {
     when(bungieClient.getDestinyId(argThat(anything))).thenReturn(null);
     context[param.SLACK_TEXT] = 'b0gus pla4yer';
-    final json = await _getResponse(handler, context);
+    final json = await getResponse(handler, context);
     expect(json['response_type'], isNot(equals('in_channel')));
     expect(json['text'], isNotNull);
     verifyNoMoreInteractions(guardianGgClient);
@@ -61,7 +60,7 @@ void main() {
         .thenReturn(_DESTINY_ID);
     when(guardianGgClient.getTrialsStats(argThat(anything)))
         .thenReturn(const <Guardian>[]);
-    final json = await _getResponse(handler, context);
+    final json = await getResponse(handler, context);
     expect(json['response_type'], isNot(equals('in_channel')));
     expect(json['text'], isNotNull);
     verify(guardianGgClient.getTrialsStats(argThat(equals(_DESTINY_ID.token))));
@@ -74,7 +73,7 @@ void main() {
         .thenReturn(null);
     when(guardianGgClient.getTrialsStats(argThat(equals(_DESTINY_ID.token))))
         .thenReturn([_GUARDIAN]);
-    final json = await _getResponse(handler, context);
+    final json = await getResponse(handler, context);
     expect(json['response_type'], equals('in_channel'));
     expect(json['text'], isNotNull);
     expect(json['text'], contains('Unknown'));
@@ -96,26 +95,12 @@ void main() {
         .thenReturn([_GUARDIAN]);
     when(database.getArmorPieces(any)).thenReturn(new Stream.fromIterable([]));
     when(database.getWeapons(any)).thenReturn(new Stream.fromIterable([]));
-    final json = await _getResponse(handler, context);
+    final json = await getResponse(handler, context);
     expect(json['response_type'], equals('in_channel'));
     expect(json['text'], isNotNull);
     expect(json['text'], contains(_SUBCLASS));
   });
 }
-
-dynamic _getResponse(
-    TrialsHandler handler, Map<String, dynamic> context) async {
-  final request = new shelf.Request(
-      'POST', Uri.parse('http://something.com/path'),
-      context: context);
-  final response = await handler.handle(request);
-  expect(response.statusCode, equals(200));
-  return JSON.decode(await response.readAsString());
-}
-
-class _MockBungieDatabase extends Mock implements BungieDatabase {}
-
-class _MockBungieClient extends Mock implements BungieClient {}
 
 class _MockGuardianGgClient extends Mock implements GuardianGgClient {}
 
