@@ -134,8 +134,8 @@ class TrialsHandler extends SlackCommandHandler {
   }
 }
 
-const _UNKNOWN_WEAPON =
-    const Weapon(const ItemId(-1), 'Unknown', WeaponType.AUTO, Rarity.COMMON);
+const _UNKNOWN_WEAPON = const Weapon(const ItemId(-1), 'Unknown',
+    WeaponType.AUTO, WeaponCategory.HEAVY, Rarity.COMMON);
 
 /// Representation of a player in ToO.
 class _TrialsGuardian extends Guardian {
