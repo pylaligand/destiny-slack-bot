@@ -61,8 +61,9 @@ Future<int> _createWeaponsDatabase(
       final id = json['itemHash'];
       final name = json['itemName'];
       final type = WEAPON_TYPE_MAPPINGS[json['itemSubType']];
+      final category = getWeaponCategory(categories);
       final rarity = RARITY_MAPPINGS[json['tierType']];
-      sink.add(new Weapon(id, name, type, rarity));
+      sink.add(new Weapon(id, name, type, category, rarity));
     }
   })).where((Weapon weapon) =>
           weapon.name != null &&
@@ -74,6 +75,7 @@ Future<int> _createWeaponsDatabase(
       '${BgDb.WEAPONS_ID} BIGINT, '
       '${BgDb.WEAPONS_NAME} TEXT, '
       '${BgDb.WEAPONS_TYPE} INT, '
+      '${BgDb.WEAPONS_CATEGORY} INT, '
       '${BgDb.WEAPONS_RARITY} INT)');
   int count = 0;
   await for (final Weapon weapon in weaponStream) {
@@ -81,6 +83,7 @@ Future<int> _createWeaponsDatabase(
         '${weapon.id}, '
         '\$\$${weapon.name}\$\$, '
         '${weapon.type.index}, '
+        '${weapon.category.index}, '
         '${weapon.rarity.index})');
   }
   print('Added $count entries to $tableName.');

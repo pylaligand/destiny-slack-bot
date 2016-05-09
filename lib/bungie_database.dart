@@ -20,6 +20,7 @@ class BgDb {
   static const WEAPONS_ID = 'id';
   static const WEAPONS_NAME = 'name';
   static const WEAPONS_TYPE = 'type';
+  static const WEAPONS_CATEGORY = 'category';
   static const WEAPONS_RARITY = 'rarity';
 
   static const TABLE_ARMOR = 'armor';
@@ -97,6 +98,7 @@ class BungieDatabase {
           new ItemId(columns[BgDb.WEAPONS_ID]),
           columns[BgDb.WEAPONS_NAME],
           WeaponType.values[columns[BgDb.WEAPONS_TYPE]],
+          WeaponCategory.values[columns[BgDb.WEAPONS_CATEGORY]],
           Rarity.values[columns[BgDb.WEAPONS_RARITY]]);
     });
   }

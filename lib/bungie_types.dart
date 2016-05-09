@@ -157,20 +157,6 @@ const Map<int, Class> CLASS_MAPPINGS = const {
   2: Class.WARLOCK,
 };
 
-/// Returns the class listed in the category list, or null if it cannot be
-/// found.
-Class getClassFromCategories(List<int> categories) {
-  if (categories.contains(21)) {
-    return Class.WARLOCK;
-  } else if (categories.contains(22)) {
-    return Class.TITAN;
-  } else if (categories.contains(23)) {
-    return Class.HUNTER;
-  } else {
-    return null;
-  }
-}
-
 /// The rarity of inventory items.
 enum Rarity { COMMON, UNCOMMON, RARE, LEGENDARY, EXOTIC }
 
@@ -216,6 +202,25 @@ const Map<int, WeaponType> WEAPON_TYPE_MAPPINGS = const {
   18: WeaponType.SWORD
 };
 
+/// The categories of weapons.
+/// This enum is necessary as some weapons may be of a given type but end up
+/// equipped in a different slot.
+enum WeaponCategory { PRIMARY, SPECIAL, HEAVY }
+
+/// Returns the weapon category listed in the category list, or null if it cannot
+/// be found.
+WeaponCategory getWeaponCategory(List<int> categories) {
+  if (categories.contains(2)) {
+    return WeaponCategory.PRIMARY;
+  } else if (categories.contains(3)) {
+    return WeaponCategory.SPECIAL;
+  } else if (categories.contains(4)) {
+    return WeaponCategory.HEAVY;
+  } else {
+    return null;
+  }
+}
+
 /// Returns a short name for the given weapon.
 String getWeaponTypeNickname(WeaponType type) {
   switch (type) {
@@ -251,26 +256,16 @@ class Weapon implements Comparable {
   final ItemId id;
   final String name;
   final WeaponType type;
+  final WeaponCategory category;
   final Rarity rarity;
 
-  const Weapon(this.id, this.name, this.type, this.rarity);
+  const Weapon(this.id, this.name, this.type, this.category, this.rarity);
 
-  bool get isPrimary =>
-      type == WeaponType.AUTO ||
-      type == WeaponType.PULSE ||
-      type == WeaponType.SCOUT ||
-      type == WeaponType.HAND_CANNON;
+  bool get isPrimary => category == WeaponCategory.PRIMARY;
 
-  bool get isSpecial =>
-      type == WeaponType.SNIPER ||
-      type == WeaponType.FUSION ||
-      type == WeaponType.SIDEARM ||
-      type == WeaponType.SHOTGUN;
+  bool get isSpecial => category == WeaponCategory.SPECIAL;
 
-  bool get isHeavy =>
-      type == WeaponType.MACHINE_GUN ||
-      type == WeaponType.ROCKET_LAUNCHER ||
-      type == WeaponType.SWORD;
+  bool get isHeavy => category == WeaponCategory.HEAVY;
 
   @override
   String toString() => '$name $type $rarity';
