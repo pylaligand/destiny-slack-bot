@@ -14,6 +14,7 @@ import '../lib/grimoire_handler.dart';
 import '../lib/online_handler.dart';
 import '../lib/slack_middleware.dart';
 import '../lib/trials_handler.dart';
+import '../lib/twitch_handler.dart';
 import '../lib/xur_handler.dart';
 
 /// Returns the value for [name] in the server configuration.
@@ -41,6 +42,7 @@ void main() {
   final worldDatabase = _getConfigValue('DATABASE_URL');
   final useDelayedResponses =
       _getConfigValue('USE_DELAYED_RESPONSES') == 'true';
+  final twitchStreamers = _getConfigValue('TWITCH_STREAMERS').split(',');
 
   final commandRouter = router()
     ..get('/', (_) => new shelf.Response.ok('This is the Destiny bot!'))
@@ -48,7 +50,8 @@ void main() {
     ..addAll(new OnlineHandler(bungieClanId), path: '/online')
     ..addAll(new GrimoireHandler(), path: '/grimoire')
     ..addAll(new CardHandler(), path: '/card')
-    ..addAll(new XurHandler(), path: '/xur');
+    ..addAll(new XurHandler(), path: '/xur')
+    ..addAll(new TwitchHandler(twitchStreamers), path: '/twitch');
 
   final handler = const shelf.Pipeline()
       .addMiddleware(
