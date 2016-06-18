@@ -39,6 +39,11 @@ yet.
   - `/twitch`
   - view active Twitch streams
 
+## Notifications
+
+- Twitch
+  - when a stream goes live
+
 ## Configuration
 
 Several configuration parameters must be passed to your Heroku dyno.
@@ -59,6 +64,8 @@ see next section
 - `USE_DELAYED_RESPONSES`: whether to use a [delayed response](https://api.slack.com/slash-commands#responding_to_a_command)
 when a query takes too long
 - `TWITCH_STREAMERS`: comma-separated list of Twitch streamers to monitor
+- `SLACK_BOT_TOKEN`: auth token for the [bot user](https://my.slack.com/services/new/bot)
+- `SLACK_BOT_CHANNEL`: name of the channel where notifications will be posted
 
 ## Database
 
