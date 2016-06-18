@@ -30,10 +30,11 @@ main(List<String> args) {
 /// Monitors the status of Twitch streamers and sends notifications to Slack.
 _monitorTwitch(String botToken) {
   final logger = new Logger('Twitch');
+  final channel = _getConfigValue('SLACK_BOT_CHANNEL');
   final scanner =
       new TwitchScanner(_getConfigValue('TWITCH_STREAMERS').split(','));
   List<Streamer> oldStreamers = [];
-  new Timer.periodic(const Duration(seconds: 10), (_) async {
+  new Timer.periodic(const Duration(minutes: 5), (_) async {
     logger.info('Checking...');
     await scanner.update();
     final newStreamers = scanner.liveStreamers;
@@ -43,7 +44,7 @@ _monitorTwitch(String botToken) {
       logger.info('$streamer is now online!');
       final postUrl = new Uri.https('slack.com', 'api/chat.postMessage', {
         'token': botToken,
-        'channel': 'testing',
+        'channel': channel,
         'text':
             ':twitch:  Now streaming: <https://www.twitch.tv/${streamer.id}|${streamer.name}> - ${streamer.status}  :twitch:',
         'unfurl_media': 'false',
