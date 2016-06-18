@@ -1,8 +1,10 @@
 // Copyright (c) 2016 P.Y. Laligand
 
 import 'dart:async';
-import 'dart:io' show Platform;
+import 'dart:convert';
+import 'dart:io';
 
+import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 
 import '../lib/twitch_scanner.dart';
@@ -21,11 +23,12 @@ main(List<String> args) {
   Logger.root.onRecord.listen((LogRecord rec) {
     print('${rec.level.name}: ${rec.time}: ${rec.loggerName}: ${rec.message}');
   });
-  _monitorTwitch();
+  final botToken = _getConfigValue('SLACK_BOT_TOKEN');
+  _monitorTwitch(botToken);
 }
 
 /// Monitors the status of Twitch streamers and sends notifications to Slack.
-_monitorTwitch() {
+_monitorTwitch(String botToken) {
   final logger = new Logger('Twitch');
   final scanner =
       new TwitchScanner(_getConfigValue('TWITCH_STREAMERS').split(','));
@@ -36,7 +39,23 @@ _monitorTwitch() {
     final newStreamers = scanner.liveStreamers;
     newStreamers
         .where((streamer) => !oldStreamers.contains(streamer))
-        .forEach((streamer) => logger.info('$streamer is now online!'));
+        .forEach((streamer) {
+      logger.info('$streamer is now online!');
+      final postUrl = new Uri.https('slack.com', 'api/chat.postMessage', {
+        'token': botToken,
+        'channel': 'testing',
+        'text':
+            ':twitch:  Now streaming: <https://www.twitch.tv/${streamer.id}|${streamer.name}> - ${streamer.status}  :twitch:',
+        'unfurl_media': 'false',
+        'as_user': 'true'
+      });
+      http.post(postUrl).then((response) {
+        final json = JSON.decode(response.body);
+        if (!json['ok']) {
+          logger.info('Failed notification: ${json['error']}');
+        }
+      });
+    });
     oldStreamers
         .where((streamer) => !newStreamers.contains(streamer))
         .forEach((streamer) => logger.info('$streamer is now offline!'));
