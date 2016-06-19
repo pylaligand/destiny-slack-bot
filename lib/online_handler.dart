@@ -48,11 +48,22 @@ class OnlineHandler extends SlackCommandHandler {
       return createAttachmentResponse(
           {'color': '#ff0000', 'text': text, 'fallback': text});
     } else {
-      final List<String> names =
-          nowPlaying.map((member) => member.gamertag).toList();
-      names.sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
-      final content = '```${names.join('\n')}```';
-      return createTextResponse(content);
+      nowPlaying.sort((a, b) =>
+          a.gamertag.toLowerCase().compareTo(b.gamertag.toLowerCase()));
+      final content = nowPlaying
+          .map((member) => '<${_getProfileUrl(member)}|${member.gamertag}>')
+          .join('\n');
+      return createTextResponse('```$content```');
+    }
+  }
+
+  // Returns the profile URL for the given clan member.
+  Uri _getProfileUrl(ClanMember member) {
+    if (member.onXbox) {
+      return new Uri.https(
+          'account.xbox.com', 'en-US/Profile', {'gamerTag': member.gamertag});
+    } else {
+      return new Uri.https('my.playstation.com', member.gamertag);
     }
   }
 }

@@ -65,7 +65,8 @@ see next section
 when a query takes too long
 - `TWITCH_STREAMERS`: comma-separated list of Twitch streamers to monitor
 - `SLACK_BOT_TOKEN`: auth token for the [bot user](https://my.slack.com/services/new/bot)
-- `SLACK_BOT_CHANNEL`: name of the channel where notifications will be posted
+- `SLACK_BOT_CHANNEL`: name of the channel where notifications will be posted (note: the bot needs to be [manually invited](https://github.com/slackhq/node-slack-sdk/issues/26)
+to the channel first)
 
 ## Database
 
@@ -82,7 +83,6 @@ from the local instance with:
 heroku pg:reset DATABASE_URL
 heroku pg:push <local db name> DATABASE_URL --app <your app's name>
 ```
-
 
 ## Running locally
 
