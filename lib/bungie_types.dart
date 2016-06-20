@@ -37,11 +37,12 @@ const _ARMOR_BUCKETS = const [
 
 /// Represents a player's character.
 class Character {
+  final DestinyId owner;
   final String id;
   final String clazz;
   final DateTime lastPlayed;
 
-  const Character(this.id, this.clazz, this.lastPlayed);
+  const Character(this.owner, this.id, this.clazz, this.lastPlayed);
 
   @override
   String toString() => 'Character{$id, $clazz}';
@@ -83,11 +84,8 @@ class BungieId extends Id {
 
 /// A member of a clan.
 class ClanMember {
-  /// Username on bungie.net.
-  final String bungieUserName;
-
-  /// The Bungie identifier.
-  final BungieId id;
+  /// The Destiny identifier.
+  final DestinyId id;
 
   /// Gaming platform id.
   final String gamertag;
@@ -95,10 +93,10 @@ class ClanMember {
   /// Whether the player is on Xbox or Playstation.
   final bool onXbox;
 
-  const ClanMember(this.bungieUserName, this.id, this.gamertag, this.onXbox);
+  const ClanMember(this.id, this.gamertag, this.onXbox);
 
   @override
-  String toString() => '$bungieUserName[$id]';
+  String toString() => '$gamertag[$id]';
 }
 
 /// Identifiers for various equipment objects.
@@ -325,4 +323,27 @@ class GrimoireCard {
 
   @override
   String toString() => title;
+}
+
+/// A reference to a character's activity.
+class ActivityReference {
+  /// The activity's identifier.
+  final int id;
+
+  /// The activity's real type, if non-zero.
+  final int typeId;
+
+  const ActivityReference(this.id, this.typeId);
+}
+
+/// Represents an in-game activity.
+class Activity {
+  final ItemId id;
+  final String type;
+  final String name;
+
+  const Activity(this.id, this.type, this.name);
+
+  @override
+  String toString() => name;
 }

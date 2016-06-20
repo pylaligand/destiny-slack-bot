@@ -11,26 +11,32 @@ import 'utils.dart';
 
 const _CLAN_ID = '123456789';
 const _ON_XBOX = true;
-const _MEMBER_ONE =
-    const ClanMember('foo', const BungieId('abcdef'), 'member_one', _ON_XBOX);
-const _MEMBER_TWO =
-    const ClanMember('bar', const BungieId('ghijkl'), 'member_two', _ON_XBOX);
+const _ID_ONE = const DestinyId(_ON_XBOX, 'abcdef');
+const _ID_TWO = const DestinyId(_ON_XBOX, 'ghijkl');
+const _MEMBER_ONE = const ClanMember(_ID_ONE, 'member_one', _ON_XBOX);
+const _MEMBER_TWO = const ClanMember(_ID_TWO, 'member_two', _ON_XBOX);
 final _NOW = new DateTime.now();
-final _CHARACTER_ONE = new Character(
-    'character_one', 'Hunter', _NOW.subtract(const Duration(minutes: 5)));
-final _CHARACTER_ONE_OLD = new Character(
-    'character_one', 'Hunter', _NOW.subtract(const Duration(hours: 6)));
-final _CHARACTER_TWO_OLD = new Character(
-    'character_two', 'Warlock', _NOW.subtract(const Duration(days: 5)));
+final _CHARACTER_ONE = new Character(_ID_ONE, 'character_one', 'Hunter',
+    _NOW.subtract(const Duration(minutes: 5)));
+final _CHARACTER_ONE_OLD = new Character(_ID_ONE, 'character_one', 'Hunter',
+    _NOW.subtract(const Duration(hours: 6)));
+final _CHARACTER_TWO_OLD = new Character(_ID_TWO, 'character_two', 'Warlock',
+    _NOW.subtract(const Duration(days: 5)));
 
 void main() {
   MockBungieClient client;
+  MockBungieDatabase database;
   Map<String, dynamic> context;
   OnlineHandler handler;
 
   setUp(() {
     client = new MockBungieClient();
-    context = {param.BUNGIE_CLIENT: client, param.SLACK_TEXT: 'xbl'};
+    database = new MockBungieDatabase();
+    context = {
+      param.BUNGIE_CLIENT: client,
+      param.BUNGIE_DATABASE: database,
+      param.SLACK_TEXT: 'xbl'
+    };
     handler = new OnlineHandler(_CLAN_ID);
   });
 
@@ -62,6 +68,7 @@ void main() {
         .thenReturn(_CHARACTER_ONE);
     when(client.getLastPlayedCharacter(_MEMBER_TWO.id))
         .thenReturn(_CHARACTER_TWO_OLD);
+    when(client.getLastCharacterActivity(any)).thenReturn(null);
     final json = await getResponse(handler, context);
     expect(json['response_type'], equals('in_channel'));
     expect(json['text'], isNotNull);

@@ -29,6 +29,15 @@ class BgDb {
   static const ARMOR_CLASS = 'class';
   static const ARMOR_TYPE = 'type';
   static const ARMOR_RARITY = 'rarity';
+
+  static const TABLE_ACTIVITY = 'activity';
+  static const ACTIVITY_ID = 'id';
+  static const ACTIVITY_TYPE = 'type';
+  static const ACTIVITY_NAME = 'name';
+
+  static const TABLE_ACTIVITY_TYPE = 'activity_type';
+  static const ACTIVITY_TYPE_ID = 'id';
+  static const ACTIVITY_TYPE_NAME = 'name';
 }
 
 /// Queries a database of Destiny data.
@@ -129,5 +138,31 @@ class BungieDatabase {
   /// Fetches the armor piece with the given [id].
   Future<Armor> getArmorPiece(ItemId id) async {
     return getArmorPieces([id]).first;
+  }
+
+  /// Fetches an activity from the given [reference].
+  Future<Activity> getActivity(ActivityReference reference) async {
+    _checkConnectionStatus(true);
+    final baseActivity = (await _connection
+            .query(
+                'SELECT * FROM ${BgDb.TABLE_ACTIVITY} WHERE ${BgDb.ACTIVITY_ID} = ${reference.id}')
+            .first)
+        .toMap();
+    getOverride() async {
+      if (reference.typeId == 0) {
+        return null;
+      }
+      final columns = (await _connection
+              .query(
+                  'SELECT * FROM ${BgDb.TABLE_ACTIVITY_TYPE} WHERE ${BgDb.ACTIVITY_TYPE_ID} = ${reference.typeId}')
+              .first)
+          .toMap();
+      return columns[BgDb.ACTIVITY_TYPE_NAME];
+    }
+    final typeOverride = await getOverride();
+    return new Activity(
+        new ItemId(baseActivity[BgDb.ACTIVITY_ID]),
+        typeOverride ?? baseActivity[BgDb.ACTIVITY_TYPE],
+        baseActivity[BgDb.ACTIVITY_NAME]);
   }
 }

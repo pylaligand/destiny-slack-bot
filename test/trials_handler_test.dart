@@ -16,7 +16,8 @@ import 'utils.dart';
 const _GAMERTAG = 'd4 pl4yer';
 const _DESTINY_ID = const DestinyId(true, 'abcdefghijkl');
 final _GUARDIAN = new Guardian(_DESTINY_ID.token, 'Superb4d', 3144, 3.14);
-final _CHARACTER = new Character('character_one', 'Hunter', new DateTime.now());
+final _CHARACTER =
+    new Character(_DESTINY_ID, 'character_one', 'Hunter', new DateTime.now());
 final _SUBCLASS = 'Gunslinger';
 
 void main() {
