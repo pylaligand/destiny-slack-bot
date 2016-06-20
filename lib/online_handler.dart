@@ -1,11 +1,13 @@
 // Copyright (c) 2016 P.Y. Laligand
 
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import 'bungie_client.dart';
+import 'bungie_database.dart';
 import 'context_params.dart' as param;
 import 'slack_command_handler.dart';
 import 'slack_format.dart';
@@ -34,13 +36,25 @@ class OnlineHandler extends SlackCommandHandler {
     }
     final members = await client.getClanRoster(_clanId, option == _OPTION_XBL);
     final nowPlaying = <ClanMember>[];
+    final activities = <DestinyId, Activity>{};
     final timeLimit = new DateTime.now().subtract(const Duration(minutes: 10));
-    await Future.wait(members.map((member) async {
-      final character = await client.getLastPlayedCharacter(member.id);
-      if (character != null && character.lastPlayed.isAfter(timeLimit)) {
+    final BungieDatabase database = params[param.BUNGIE_DATABASE];
+    await database.connect();
+    try {
+      await Future.wait(members.map((member) async {
+        final character = await client.getLastPlayedCharacter(member.id);
+        if (character == null || character.lastPlayed.isBefore(timeLimit)) {
+          return;
+        }
         nowPlaying.add(member);
-      }
-    }));
+        final reference = await client.getLastCharacterActivity(character);
+        if (reference != null) {
+          activities[member.id] = await database.getActivity(reference);
+        }
+      }));
+    } finally {
+      database.close();
+    }
     _log.info('${nowPlaying.length} online');
     nowPlaying.forEach((member) => _log.info(' - $member'));
     if (nowPlaying.isEmpty) {
@@ -50,14 +64,30 @@ class OnlineHandler extends SlackCommandHandler {
     } else {
       nowPlaying.sort((a, b) =>
           a.gamertag.toLowerCase().compareTo(b.gamertag.toLowerCase()));
-      final content = nowPlaying
-          .map((member) => '<${_getProfileUrl(member)}|${member.gamertag}>')
-          .join('\n');
+      final maxNameLength =
+          nowPlaying.map((member) => member.gamertag.length).reduce(math.max);
+      final content = nowPlaying.map((member) {
+        final url = _getProfileUrl(member);
+        final name = member.gamertag;
+        final buffer = new StringBuffer('<$url|$name>');
+        final activity = activities[member.id];
+        if (activity != null) {
+          final blanks = maxNameLength - name.length;
+          buffer.write(''.padRight(blanks));
+          buffer.write('  ');
+          if (activity.name.startsWith(activity.type)) {
+            buffer.write(activity.name);
+          } else {
+            buffer.write('${activity.type} - ${activity.name}');
+          }
+        }
+        return buffer.toString();
+      }).join('\n');
       return createTextResponse('```$content```');
     }
   }
 
-  // Returns the profile URL for the given clan member.
+  /// Returns the profile URL for the given clan member.
   Uri _getProfileUrl(ClanMember member) {
     if (member.onXbox) {
       return new Uri.https(

@@ -50,7 +50,7 @@ class BungieClient {
   }
 
   /// Returns the last character the given player played with.
-  Future<Character> getLastPlayedCharacter(Id id) async {
+  Future<Character> getLastPlayedCharacter(DestinyId id) async {
     final url = '$_BASE/User/GetBungieAccount/${id.token}/${id.type}/';
     final data = await _getJson(url);
     if (!_hasValidResponse(data) ||
@@ -70,9 +70,30 @@ class BungieClient {
           : character;
     });
     return new Character(
+        id,
         characterData['characterId'],
         characterData['classHash'].toString(),
         DateTime.parse(characterData['dateLastPlayed']));
+  }
+
+  /// Returns a reference to the last game played with the given character.
+  Future<ActivityReference> getLastCharacterActivity(
+      Character character) async {
+    final id = character.owner;
+    final url =
+        '$_BASE/Destiny/Stats/ActivityHistory/${id.type}/${id.token}/${character.id}?mode=None';
+    final data = await _getJson(url);
+    if (!_hasValidResponse(data) ||
+        data['Response']['data'] == null ||
+        data['Response']['data']['activities'] == null ||
+        data['Response']['data']['activities'].isEmpty ||
+        data['Response']['data']['activities'][0] == null) {
+      return null;
+    }
+    final activity = data['Response']['data']['activities'][0];
+    final instance = activity['activityDetails']['referenceId'];
+    final override = activity['activityDetails']['activityTypeHashOverride'];
+    return new ActivityReference(instance, override);
   }
 
   /// Returns the grimoire score of the given player.
@@ -82,7 +103,7 @@ class BungieClient {
     if (!_hasValidResponse(data) ||
         data['Response']['destinyAccounts'] == null ||
         data['Response']['destinyAccounts'].isEmpty ||
-        data['Response']['destinyAccounts'][0]) {
+        data['Response']['destinyAccounts'][0] == null) {
       return null;
     }
     return data['Response']['destinyAccounts'][0]['grimoireScore'];
@@ -113,13 +134,9 @@ class BungieClient {
           data['Response']['results'].isEmpty) {
         continue;
       }
-      members.addAll(data['Response']['results'].map((userData) {
-        final user = userData['user'];
-        final platformKey = onXbox ? 'xboxDisplayName' : 'psnDisplayName';
-        final id = new BungieId(user['membershipId']);
-        return new ClanMember(
-            user['displayName'], id, user[platformKey], onXbox);
-      }));
+      members.addAll(data['Response']['results'].map((userData) =>
+          new ClanMember(new DestinyId(onXbox, userData['membershipId']),
+              userData['destinyUserInfo']['displayName'], onXbox)));
       if (!data['Response']['hasMore']) {
         break;
       }
@@ -131,7 +148,7 @@ class BungieClient {
   dynamic _getClanRosterPage(String clanId, bool onXbox, int pageIndex) async {
     final type = onXbox ? '1' : '2';
     final url =
-        '$_BASE/Group/$clanId/Members/?currentPage=$pageIndex&platformType=$type';
+        '$_BASE/Group/$clanId/ClanMembers/?currentPage=$pageIndex&platformType=$type';
     return await _getJson(url);
   }
 

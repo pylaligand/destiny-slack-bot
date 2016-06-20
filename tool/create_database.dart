@@ -133,6 +133,80 @@ Future<int> _createArmorDatabase(
   return count;
 }
 
+/// Creates a table containing activity definitions.
+Future<int> _createActivityDatabase(
+    lite.Database liteDb, pg.Connection pgDb) async {
+  final tableName = BgDb.TABLE_ACTIVITY;
+  print('Populating $tableName...');
+
+  // Get the map of activity types.
+  final types = <int, String>{};
+  await liteDb
+      .query('SELECT json FROM DestinyActivityTypeDefinition')
+      .forEach((lite.Row row) {
+    final json = JSON.decode(row['json']);
+    final hash = json['activityTypeHash'];
+    final name = json['activityTypeName'];
+    types[hash] = name;
+  });
+
+  final Stream<Activity> activityStream = liteDb
+      .query('SELECT json FROM DestinyActivityDefinition')
+      .transform(new StreamTransformer<lite.Row, Activity>.fromHandlers(
+          handleData: (lite.Row row, EventSink<Activity> sink) {
+    final json = JSON.decode(row['json']);
+    final hash = json['activityHash'];
+    final type = types[json['activityTypeHash']];
+    final name = json['activityName'];
+    sink.add(new Activity(hash, type, name));
+  }));
+
+  await pgDb.execute('DROP TABLE IF EXISTS $tableName');
+  await pgDb.execute('CREATE TABLE $tableName ('
+      '${BgDb.ACTIVITY_ID} BIGINT, '
+      '${BgDb.ACTIVITY_TYPE} TEXT, '
+      '${BgDb.ACTIVITY_NAME} TEXT)');
+  int count = 0;
+  await for (final Activity activity in activityStream) {
+    count += await pgDb.execute('INSERT INTO $tableName VALUES ('
+        '${activity.id}, '
+        '\$\$${activity.type}\$\$, '
+        '\$\$${activity.name}\$\$)');
+  }
+  print('Added $count entries to $tableName.');
+  return count;
+}
+
+/// Creates a table containing activity type definitions.
+Future<int> _createActivityTypeDatabase(
+    lite.Database liteDb, pg.Connection pgDb) async {
+  final tableName = BgDb.TABLE_ACTIVITY_TYPE;
+  print('Populating $tableName...');
+
+  final Stream<List> typeStream = liteDb
+      .query('SELECT json FROM DestinyActivityTypeDefinition')
+      .transform(new StreamTransformer<lite.Row, List>.fromHandlers(
+          handleData: (lite.Row row, EventSink<List> sink) {
+    final json = JSON.decode(row['json']);
+    final hash = json['activityTypeHash'];
+    final name = json['activityTypeName'];
+    sink.add([hash, name]);
+  }));
+
+  await pgDb.execute('DROP TABLE IF EXISTS $tableName');
+  await pgDb.execute('CREATE TABLE $tableName ('
+      '${BgDb.ACTIVITY_TYPE_ID} BIGINT, '
+      '${BgDb.ACTIVITY_TYPE_NAME} TEXT)');
+  int count = 0;
+  await for (final List type in typeStream) {
+    count += await pgDb.execute('INSERT INTO $tableName VALUES ('
+        '${type[0]}, '
+        '\$\$${type[1]}\$\$)');
+  }
+  print('Added $count entries to $tableName.');
+  return count;
+}
+
 /// Utility to list item buckets.
 //ignore: unused_element
 _inspectBuckets(lite.Database liteDb) async {
@@ -174,6 +248,30 @@ _inspectCategories(lite.Database liteDb) async {
   });
 }
 
+/// Utility to list activities.
+//ignore: unused_element
+_inspectActivities(lite.Database liteDb) async {
+  await liteDb
+      .query('SELECT json FROM DestinyActivityDefinition')
+      .forEach((row) {
+    final json = JSON.decode(row['json']);
+    final name = json['activityName'];
+    print(name);
+  });
+}
+
+/// Utility to list activity types.
+//ignore: unused_element
+_inspectActivityTypes(lite.Database liteDb) async {
+  await liteDb
+      .query('SELECT json FROM DestinyActivityTypeDefinition')
+      .forEach((row) {
+    final json = JSON.decode(row['json']);
+    final name = json['activityTypeName'];
+    print(name);
+  });
+}
+
 main(List<String> args) async {
   final parser = new ArgParser()
     ..addOption(_FLAG_LITE_DB, help: 'Source SQLite database file')
@@ -191,7 +289,9 @@ main(List<String> args) async {
   try {
     final entryCount = await _createGrimoireDatabase(liteDb, pgDb) +
         await _createWeaponsDatabase(liteDb, pgDb) +
-        await _createArmorDatabase(liteDb, pgDb);
+        await _createArmorDatabase(liteDb, pgDb) +
+        await _createActivityDatabase(liteDb, pgDb) +
+        await _createActivityTypeDatabase(liteDb, pgDb);
     print('Inserted $entryCount entries.');
   } finally {
     liteDb.close();
