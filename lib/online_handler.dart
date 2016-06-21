@@ -74,7 +74,7 @@ class OnlineHandler extends SlackCommandHandler {
         if (activity != null) {
           final blanks = maxNameLength - name.length;
           buffer.write(''.padRight(blanks));
-          buffer.write('  ');
+          buffer.write(' | ');
           if (activity.name.startsWith(activity.type)) {
             buffer.write(activity.name);
           } else {
