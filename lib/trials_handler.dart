@@ -14,6 +14,8 @@ import 'guardian_gg_client.dart';
 import 'slack_command_handler.dart';
 import 'slack_format.dart';
 
+const _OPTION_HELP = 'help';
+
 /// Handles requests for Trials of Osiris information.
 class TrialsHandler extends SlackCommandHandler {
   final _log = new Logger('TrialsHandler');
@@ -30,6 +32,15 @@ class TrialsHandler extends SlackCommandHandler {
   Future<shelf.Response> handle(shelf.Request request) async {
     final params = request.context;
     final String gamertag = params[param.SLACK_TEXT];
+
+    if (gamertag == _OPTION_HELP) {
+      _log.info('@${params[param.SLACK_USERNAME]} needs help');
+      return createTextResponse(
+          'Inspect a given player\'s last fireteam in Trials of Osiris, along'
+          ' with their stats and equipment',
+          private: true);
+    }
+
     _log.info('@${params[param.SLACK_USERNAME]} looking up "$gamertag"');
 
     // Look up the Destiny ID.

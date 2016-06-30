@@ -14,6 +14,7 @@ import 'slack_format.dart';
 
 const _OPTION_XBL = 'xbl';
 const _OPTION_PSN = 'psn';
+const _OPTION_HELP = 'help';
 
 /// Looks up online clan members.
 class OnlineHandler extends SlackCommandHandler {
@@ -27,8 +28,15 @@ class OnlineHandler extends SlackCommandHandler {
     final params = request.context;
     final BungieClient client = params[param.BUNGIE_CLIENT];
     final option = params[param.SLACK_TEXT];
-    _log.info(
-        '@${params[param.SLACK_USERNAME]} viewing online guardians on $option');
+    final username = params[param.SLACK_USERNAME];
+    if (option == _OPTION_HELP) {
+      _log.info('@$username needs help');
+      return createTextResponse(
+          'View clan members online playing Destiny, on Xbox (*xbl*) or'
+          ' Playstation (*psn*)',
+          private: true);
+    }
+    _log.info('@$username viewing online guardians on $option');
     if (option != _OPTION_XBL && option != _OPTION_PSN) {
       _log.warning('Invalid platform identifier');
       return createTextResponse('Err, that is not a valid platform!',
