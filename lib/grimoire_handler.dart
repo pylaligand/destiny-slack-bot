@@ -10,6 +10,8 @@ import 'context_params.dart' as param;
 import 'slack_command_handler.dart';
 import 'slack_format.dart';
 
+const _OPTION_HELP = 'help';
+
 /// Fetches grimoire scores.
 class GrimoireHandler extends SlackCommandHandler {
   final _log = new Logger('GrimoireHandler');
@@ -19,8 +21,15 @@ class GrimoireHandler extends SlackCommandHandler {
     final params = request.context;
     final BungieClient client = params[param.BUNGIE_CLIENT];
     final String userName = params[param.SLACK_USERNAME];
-    final String gamertag = _getGamertag(userName, params[param.SLACK_TEXT]);
-
+    final text = params[param.SLACK_TEXT];
+    if (text == _OPTION_HELP) {
+      _log.info('@$userName needs help');
+      return createTextResponse(
+          'Looks up a given player\'s grimoire score; uses your Slack username'
+          ' if no argument is given',
+          private: true);
+    }
+    final String gamertag = _getGamertag(userName, text);
     _log.info('@$userName looking up "$gamertag"');
     lookUp() async {
       final directId = await client.getDestinyId(gamertag);

@@ -11,6 +11,8 @@ import 'context_params.dart' as param;
 import 'slack_command_handler.dart';
 import 'slack_format.dart';
 
+const _OPTION_HELP = 'help';
+
 /// Handles requests for Xur inventory.
 class XurHandler extends SlackCommandHandler {
   final _log = new Logger('XurHandler');
@@ -18,6 +20,10 @@ class XurHandler extends SlackCommandHandler {
   @override
   Future<shelf.Response> handle(shelf.Request request) async {
     final params = request.context;
+    if (params[param.SLACK_TEXT] == _OPTION_HELP) {
+      _log.info('@${params[param.SLACK_USERNAME]} needs help');
+      return createTextResponse('Inspect Xur\'s inventory', private: true);
+    }
     final BungieClient client = params[param.BUNGIE_CLIENT];
     final inventory = await client.getXurInventory();
     if (inventory == null || inventory.isEmpty) {

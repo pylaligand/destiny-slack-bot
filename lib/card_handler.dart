@@ -11,6 +11,8 @@ import 'context_params.dart' as param;
 import 'slack_command_handler.dart';
 import 'slack_format.dart';
 
+const _OPTION_HELP = 'help';
+
 /// Display a random grimoire card.
 class CardHandler extends SlackCommandHandler {
   final _log = new Logger('CardHandler');
@@ -18,6 +20,10 @@ class CardHandler extends SlackCommandHandler {
   @override
   Future<shelf.Response> handle(shelf.Request request) async {
     final params = request.context;
+    if (params[param.SLACK_TEXT] == _OPTION_HELP) {
+      _log.info('@${params[param.SLACK_USERNAME]} needs help');
+      return createTextResponse('Read a random grimoire card', private: true);
+    }
     pickCard() async {
       final BungieDatabase database = params[param.BUNGIE_DATABASE];
       try {
