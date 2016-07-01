@@ -48,6 +48,7 @@ _monitorTwitch(String botToken) {
         'text':
             ':twitch:  Now streaming: <https://www.twitch.tv/${streamer.id}|${streamer.name}> - ${streamer.status}  :twitch:',
         'unfurl_media': 'false',
+        'unfurl_links': 'false',
         'as_user': 'true'
       });
       http.post(postUrl).then((response) {
