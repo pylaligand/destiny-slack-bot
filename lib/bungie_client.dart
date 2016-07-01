@@ -49,6 +49,23 @@ class BungieClient {
     return new DestinyId(onXbox, data['Response'][0]['membershipId']);
   }
 
+  /// Returns a reference to the given player's current activity, or null if the
+  /// player is not online.
+  Future<ActivityReference> getCurrentActivity(DestinyId id) async {
+    final url = '$_BASE/Destiny/${id.type}/Account/${id.token}/Summary';
+    final data = await _getJson(url);
+    if (!_hasValidResponse(data) ||
+        data['Response']['data'] == null ||
+        data['Response']['data']['characters'] == null) {
+      return null;
+    }
+    final List<dynamic> characters = data['Response']['data']['characters'];
+    final activityHash = characters
+        .map((character) => character['characterBase']['currentActivityHash'])
+        .firstWhere((hash) => hash != 0, orElse: () => null);
+    return activityHash != null ? new ActivityReference(activityHash) : null;
+  }
+
   /// Returns the last character the given player played with.
   Future<Character> getLastPlayedCharacter(DestinyId id) async {
     final url = '$_BASE/User/GetBungieAccount/${id.token}/${id.type}/';
@@ -76,8 +93,8 @@ class BungieClient {
         DateTime.parse(characterData['dateLastPlayed']));
   }
 
-  /// Returns a reference to the last game played with the given character.
-  Future<ActivityReference> getLastCharacterActivity(
+  /// Returns a reference to the last game completed with the given character.
+  Future<ActivityReference> getCharacterLastCompletedActivity(
       Character character) async {
     final id = character.owner;
     final url =
@@ -93,7 +110,7 @@ class BungieClient {
     final activity = data['Response']['data']['activities'][0];
     final instance = activity['activityDetails']['referenceId'];
     final override = activity['activityDetails']['activityTypeHashOverride'];
-    return new ActivityReference(instance, override);
+    return new ActivityReference.withOverride(instance, override);
   }
 
   /// Returns the grimoire score of the given player.

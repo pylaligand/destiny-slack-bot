@@ -15,13 +15,7 @@ const _ID_ONE = const DestinyId(_ON_XBOX, 'abcdef');
 const _ID_TWO = const DestinyId(_ON_XBOX, 'ghijkl');
 const _MEMBER_ONE = const ClanMember(_ID_ONE, 'member_one', _ON_XBOX);
 const _MEMBER_TWO = const ClanMember(_ID_TWO, 'member_two', _ON_XBOX);
-final _NOW = new DateTime.now();
-final _CHARACTER_ONE = new Character(_ID_ONE, 'character_one', 'Hunter',
-    _NOW.subtract(const Duration(minutes: 5)));
-final _CHARACTER_ONE_OLD = new Character(_ID_ONE, 'character_one', 'Hunter',
-    _NOW.subtract(const Duration(hours: 6)));
-final _CHARACTER_TWO_OLD = new Character(_ID_TWO, 'character_two', 'Warlock',
-    _NOW.subtract(const Duration(days: 5)));
+const _ACTIVITY = const ActivityReference(314);
 
 void main() {
   MockBungieClient client;
@@ -64,11 +58,7 @@ void main() {
   test('with online members', () async {
     when(client.getClanRoster(_CLAN_ID, _ON_XBOX))
         .thenReturn(<ClanMember>[_MEMBER_ONE, _MEMBER_TWO]);
-    when(client.getLastPlayedCharacter(_MEMBER_ONE.id))
-        .thenReturn(_CHARACTER_ONE);
-    when(client.getLastPlayedCharacter(_MEMBER_TWO.id))
-        .thenReturn(_CHARACTER_TWO_OLD);
-    when(client.getLastCharacterActivity(any)).thenReturn(null);
+    when(client.getCurrentActivity(_MEMBER_ONE.id)).thenReturn(_ACTIVITY);
     final json = await getResponse(handler, context);
     expect(json['response_type'], equals('in_channel'));
     expect(json['text'], isNotNull);
@@ -79,10 +69,6 @@ void main() {
   test('no online member', () async {
     when(client.getClanRoster(_CLAN_ID, _ON_XBOX))
         .thenReturn(<ClanMember>[_MEMBER_ONE, _MEMBER_TWO]);
-    when(client.getLastPlayedCharacter(_MEMBER_ONE.id))
-        .thenReturn(_CHARACTER_ONE_OLD);
-    when(client.getLastPlayedCharacter(_MEMBER_TWO.id))
-        .thenReturn(_CHARACTER_TWO_OLD);
     final json = await getResponse(handler, context);
     expect(json['response_type'], equals('in_channel'));
     expect(json['attachments'], isNotNull);
