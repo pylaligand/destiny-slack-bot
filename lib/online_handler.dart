@@ -45,19 +45,14 @@ class OnlineHandler extends SlackCommandHandler {
     final members = await client.getClanRoster(_clanId, option == _OPTION_XBL);
     final nowPlaying = <ClanMember>[];
     final activities = <DestinyId, Activity>{};
-    final timeLimit = new DateTime.now().subtract(const Duration(minutes: 10));
     final BungieDatabase database = params[param.BUNGIE_DATABASE];
     await database.connect();
     try {
       await Future.wait(members.map((member) async {
-        final character = await client.getLastPlayedCharacter(member.id);
-        if (character == null || character.lastPlayed.isBefore(timeLimit)) {
-          return;
-        }
-        nowPlaying.add(member);
-        final reference = await client.getLastCharacterActivity(character);
-        if (reference != null) {
-          activities[member.id] = await database.getActivity(reference);
+        final activity = await client.getCurrentActivity(member.id);
+        if (activity != null) {
+          nowPlaying.add(member);
+          activities[member.id] = await database.getActivity(activity);
         }
       }));
     } finally {
@@ -85,6 +80,8 @@ class OnlineHandler extends SlackCommandHandler {
           buffer.write(' | ');
           if (activity.name.startsWith(activity.type)) {
             buffer.write(activity.name);
+          } else if (activity.type == 'Rumble') {
+            buffer.write('Crucible - ${activity.name}');
           } else {
             buffer.write('${activity.type} - ${activity.name}');
           }

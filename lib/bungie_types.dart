@@ -333,7 +333,12 @@ class ActivityReference {
   /// The activity's real type, if non-zero.
   final int typeId;
 
-  const ActivityReference(this.id, this.typeId);
+  const ActivityReference(int id) : this.withOverride(id, 0);
+
+  const ActivityReference.withOverride(this.id, this.typeId);
+
+  @override
+  String toString() => '$id($typeId)';
 }
 
 /// Represents an in-game activity.
