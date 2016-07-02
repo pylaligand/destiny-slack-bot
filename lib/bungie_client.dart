@@ -10,7 +10,7 @@ import 'bungie_types.dart';
 export 'bungie_types.dart';
 
 /// Base URL for API calls.
-const _BASE = 'http://www.bungie.net/Platform';
+const _BASE = 'https://www.bungie.net/Platform';
 
 /// Client for the Bungie REST API.
 class BungieClient {
