@@ -15,6 +15,7 @@ import '../lib/online_handler.dart';
 import '../lib/slack_middleware.dart';
 import '../lib/trials_handler.dart';
 import '../lib/twitch_handler.dart';
+import '../lib/weekly_handler.dart';
 import '../lib/xur_handler.dart';
 
 /// Returns the value for [name] in the server configuration.
@@ -51,7 +52,8 @@ void main() {
     ..addAll(new GrimoireHandler(), path: '/grimoire')
     ..addAll(new CardHandler(), path: '/card')
     ..addAll(new XurHandler(), path: '/xur')
-    ..addAll(new TwitchHandler(twitchStreamers), path: '/twitch');
+    ..addAll(new TwitchHandler(twitchStreamers), path: '/twitch')
+    ..addAll(new WeeklyHandler(), path: '/weekly');
 
   final handler = const shelf.Pipeline()
       .addMiddleware(

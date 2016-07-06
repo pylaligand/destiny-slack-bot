@@ -200,6 +200,33 @@ class BungieClient {
         .toList();
   }
 
+  /// Returns a collection of weekly activities, or null if it could not be
+  /// fetched.
+  Future<WeeklyProgram> getWeeklyActivities() async {
+    const url = '$_BASE/Destiny/Advisors/V2';
+    final data = await _getJson(url);
+    if (!_hasValidResponse(data) ||
+        data['Response']['data'] == null ||
+        data['Response']['data']['activities'] == null) {
+      return null;
+    }
+    final activities = data['Response']['data']['activities'];
+    return new WeeklyProgram(
+        new ActivityReference(
+            activities['nightfall']['display']['activityHash']),
+        activities['nightfall']['extended']['skullCategories'][0]['skulls']
+            .map((skull) => skull['displayName']),
+        activities['kingsfall']['activityTiers'][0]['skullCategories'][0]
+            ['skulls'][0]['displayName'],
+        activities['elderchallenge']['extended']['skullCategories'].expand(
+            (category) =>
+                category['skulls'].map((skull) => skull['displayName'])),
+        new ActivityReference(
+            activities['weeklycrucible']['display']['activityHash']),
+        activities['heroicstrike']['extended']['skullCategories'][0]['skulls']
+            .map((skull) => skull['displayName']));
+  }
+
   dynamic _getJson(String url) async {
     final body = await http.read(url, headers: {'X-API-Key': this._apiKey});
     try {
