@@ -352,3 +352,21 @@ class Activity {
   @override
   String toString() => name;
 }
+
+/// The collection of weekly activities and their characteristics.
+class WeeklyProgram {
+  final ActivityReference nightfall;
+  final List<String> nightfallModifiers;
+  final String kingsFallChallenge;
+  final List<String> poeModifiers;
+  final ActivityReference cruciblePlaylist;
+  final List<String> heroicStrikeModifiers;
+
+  const WeeklyProgram(
+      this.nightfall,
+      this.nightfallModifiers,
+      this.kingsFallChallenge,
+      this.poeModifiers,
+      this.cruciblePlaylist,
+      this.heroicStrikeModifiers);
+}
