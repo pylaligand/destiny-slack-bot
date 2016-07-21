@@ -38,6 +38,12 @@ yet.
 - Twitch streams
   - `/twitch`
   - view active Twitch streams
+- Weekly activities
+  - `/weekly`
+  - view activities for the week (nightfall strike, CoE modifiers, etc...)
+- Moments of Triumph
+  - `/triumphs`
+  - check progress on Moments of Triumph
 
 ## Notifications
 

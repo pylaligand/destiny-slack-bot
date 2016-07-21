@@ -14,6 +14,7 @@ import '../lib/grimoire_handler.dart';
 import '../lib/online_handler.dart';
 import '../lib/slack_middleware.dart';
 import '../lib/trials_handler.dart';
+import '../lib/triumphs_handler.dart';
 import '../lib/twitch_handler.dart';
 import '../lib/weekly_handler.dart';
 import '../lib/xur_handler.dart';
@@ -53,7 +54,8 @@ void main() {
     ..addAll(new CardHandler(), path: '/card')
     ..addAll(new XurHandler(), path: '/xur')
     ..addAll(new TwitchHandler(twitchStreamers), path: '/twitch')
-    ..addAll(new WeeklyHandler(), path: '/weekly');
+    ..addAll(new WeeklyHandler(), path: '/weekly')
+    ..addAll(new TriumphsHandler(), path: '/triumphs');
 
   final handler = const shelf.Pipeline()
       .addMiddleware(

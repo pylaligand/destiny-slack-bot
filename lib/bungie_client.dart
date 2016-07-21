@@ -227,6 +227,27 @@ class BungieClient {
             .map((skull) => skull['displayName']));
   }
 
+  /// Returns the progress on Moments of Triumph as a completion percentage for
+  /// the given player.
+  Future<int> getTriumphsProgress(DestinyId id) async {
+    final url = '$_BASE/Destiny/${id.type}/Account/${id.token}/Advisors/';
+    final data = await _getJson(url);
+    if (!_hasValidResponse(data) || data['Response']['data'] == null) {
+      return null;
+    }
+    const y2MotId = '2175864601';
+    final records = data['Response']['data']['recordBooks'][y2MotId]['records'];
+    int total = 0;
+    int completed = 0;
+    records.forEach((_, record) {
+      total++;
+      if (record['status'] == 2) {
+        completed++;
+      }
+    });
+    return (100 * completed / total).round();
+  }
+
   dynamic _getJson(String url) async {
     final body = await http.read(url, headers: {'X-API-Key': this._apiKey});
     try {
