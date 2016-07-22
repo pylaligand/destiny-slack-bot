@@ -42,12 +42,12 @@ class WeeklyHandler extends SlackCommandHandler {
     } finally {
       database.close();
     }
-    activities.nightfallModifiers.forEach(print);
     final fields = [
       _createField('Nightfall strike', nightfallStrike.name),
       _createField(
           'Nightfall modifiers', activities.nightfallModifiers.join(', ')),
       _createField('King\'s Fall', activities.kingsFallChallenge),
+      _createField('Court of Oryx Tier 3 boss', _getCooBoss()),
       _createField('Challenge of the Elders modifiers',
           activities.poeModifiers.join(', ')),
       _createField('Weekly Crucible', weeklyCrucible.name),
@@ -59,5 +59,14 @@ class WeeklyHandler extends SlackCommandHandler {
 
   Map<String, String> _createField(String title, String value) {
     return {'title': title, 'value': value};
+  }
+
+  String _getCooBoss() {
+    const bosses = const ['Thalnok, Fanatic of Crota', 'Kagoor', 'Balwur'];
+    final ttkReleaseDate = new DateTime(2015, 9, 22, 1);
+    final now = new DateTime.now();
+    final durationWeeks = now.difference(ttkReleaseDate).inDays / 7;
+    final index = durationWeeks.round() % 3;
+    return bosses[index];
   }
 }

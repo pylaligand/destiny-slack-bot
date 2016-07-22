@@ -216,11 +216,11 @@ class BungieClient {
             activities['nightfall']['display']['activityHash']),
         activities['nightfall']['extended']['skullCategories'][0]['skulls']
             .map((skull) => skull['displayName']),
-        activities['kingsfall']['activityTiers'][0]['skullCategories'][0]
-            ['skulls'][0]['displayName'],
-        activities['elderchallenge']['extended']['skullCategories'].expand(
-            (category) =>
-                category['skulls'].map((skull) => skull['displayName'])),
+        activities['kingsfall']['activityTiers']
+                .firstWhere((tier) => tier['tierDisplayName'] == 'Hard')[
+            'skullCategories'][0]['skulls'][0]['displayName'],
+        activities['elderchallenge']['extended']['skullCategories'].expand((category) =>
+            category['skulls'].map((skull) => skull['displayName'])),
         new ActivityReference(
             activities['weeklycrucible']['display']['activityHash']),
         activities['heroicstrike']['extended']['skullCategories'][0]['skulls']
