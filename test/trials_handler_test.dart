@@ -2,11 +2,10 @@
 
 import 'dart:async';
 
+import 'package:bungie_client/bungie_client.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
-import '../lib/bungie_client.dart';
-import '../lib/bungie_types.dart';
 import '../lib/context_params.dart' as param;
 import '../lib/guardian_gg_client.dart';
 import '../lib/trials_handler.dart';

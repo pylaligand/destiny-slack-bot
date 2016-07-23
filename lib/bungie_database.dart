@@ -2,12 +2,11 @@
 
 import 'dart:async';
 
+import 'package:bungie_client/bungie_types.dart';
 import 'package:logging/logging.dart';
 import 'package:postgresql/postgresql.dart' as pg;
 
-import 'bungie_types.dart';
-
-export 'bungie_types.dart';
+export 'package:bungie_client/bungie_types.dart';
 
 /// Schemas of the various tables in the database.
 class BgDb {

@@ -3,12 +3,11 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:bungie_client/bungie_client.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
-import 'bungie_client.dart';
 import 'bungie_database.dart';
-import 'bungie_types.dart';
 import 'context_params.dart' as param;
 import 'guardian_gg_client.dart';
 import 'slack_command_handler.dart';

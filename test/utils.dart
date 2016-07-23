@@ -2,11 +2,11 @@
 
 import 'dart:convert';
 
+import 'package:bungie_client/bungie_client.dart';
 import 'package:mockito/mockito.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:test/test.dart';
 
-import '../lib/bungie_client.dart';
 import '../lib/bungie_database.dart';
 import '../lib/slack_command_handler.dart';
 
