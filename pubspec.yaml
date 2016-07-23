@@ -3,6 +3,10 @@ author: P.Y. Laligand
 version: 0.0.1
 description: A Slack bot exposing various Destiny-related utilities.
 dependencies:
+  bungie_client:
+    git:
+      url: https://github.com/pylaligand/dart-bungie-client.git
+      ref: 4ebf12f59d6a8f9f1ab527c26636ee4796c7bfdc
   http: ^0.11.3+3
   logging: ^0.11.2
   shelf: ^0.6.5

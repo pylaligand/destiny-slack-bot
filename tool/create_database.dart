@@ -9,7 +9,6 @@ import 'package:postgresql/postgresql.dart' as pg;
 import 'package:sqlite/sqlite.dart' as lite;
 
 import '../lib/bungie_database.dart';
-import '../lib/bungie_types.dart';
 
 const _FLAG_LITE_DB = 'sqlite_db_file';
 const _FLAG_PG_DB = 'postgres_uri';

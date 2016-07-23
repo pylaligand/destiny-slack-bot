@@ -1,9 +1,9 @@
 // Copyright (c) 2016 P.Y. Laligand
 
+import 'package:bungie_client/bungie_types.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
-import '../lib/bungie_types.dart';
 import '../lib/card_handler.dart';
 import '../lib/context_params.dart' as param;
 

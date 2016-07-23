@@ -2,10 +2,10 @@
 
 import 'dart:async';
 
+import 'package:bungie_client/bungie_client.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
-import 'bungie_client.dart';
 import 'bungie_database.dart';
 import 'context_params.dart' as param;
 import 'slack_command_handler.dart';
