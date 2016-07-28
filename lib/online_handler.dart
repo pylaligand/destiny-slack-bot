@@ -61,9 +61,7 @@ class OnlineHandler extends SlackCommandHandler {
     _log.info('${nowPlaying.length} online');
     nowPlaying.forEach((member) => _log.info(' - $member'));
     if (nowPlaying.isEmpty) {
-      final text = 'No guardian online';
-      return createAttachmentResponse(
-          {'color': '#ff0000', 'text': text, 'fallback': text});
+      return createErrorAttachment('No guardian online');
     } else {
       nowPlaying.sort((a, b) =>
           a.gamertag.toLowerCase().compareTo(b.gamertag.toLowerCase()));

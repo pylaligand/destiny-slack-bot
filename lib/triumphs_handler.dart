@@ -12,6 +12,7 @@ import 'slack_format.dart';
 
 const _OPTION_HELP = 'help';
 
+/// Displays Moments of Triumph completion.
 class TriumphsHandler extends SlackCommandHandler {
   final _log = new Logger('TriumphsHandler');
 

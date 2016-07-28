@@ -19,12 +19,23 @@ shelf.Response createTextResponse(String content,
   return new shelf.Response.ok(body, headers: headers);
 }
 
-/// Creates a response object with an attachment.
-shelf.Response createAttachmentResponse(Map<String, String> attachment) {
+/// Creates a response object with some attachments.
+shelf.Response createAttachmentsResponse(List<Map> attachments) {
   final json = new Map();
   json['response_type'] = 'in_channel';
-  json['attachments'] = [attachment];
+  json['attachments'] = attachments;
   final body = JSON.encode(json);
   final headers = {'content-type': 'application/json'};
   return new shelf.Response.ok(body, headers: headers);
+}
+
+/// Creates a response object with an attachment.
+shelf.Response createAttachmentResponse(Map attachment) {
+  return createAttachmentsResponse([attachment]);
+}
+
+/// Creates a response object with an error message.
+shelf.Response createErrorAttachment(String text) {
+  return createAttachmentResponse(
+      {'color': '#ff0000', 'text': text, 'fallback': text});
 }
