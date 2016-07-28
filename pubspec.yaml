@@ -11,6 +11,7 @@ dependencies:
   logging: ^0.11.2
   shelf: ^0.6.5
   shelf_route: ^0.14.1
+  timezone: ^0.4.3
 dev_dependencies:
   archive: ^1.0.20
   args: ^0.13.4

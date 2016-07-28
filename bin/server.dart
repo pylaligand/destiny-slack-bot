@@ -7,12 +7,15 @@ import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as io;
 import 'package:shelf_route/shelf_route.dart';
+import 'package:timezone/standalone.dart';
 
 import '../lib/bungie_middleware.dart';
 import '../lib/card_handler.dart';
 import '../lib/grimoire_handler.dart';
+import '../lib/lfg_handler.dart';
 import '../lib/online_handler.dart';
 import '../lib/slack_middleware.dart';
+import '../lib/the_hundred_middleware.dart';
 import '../lib/trials_handler.dart';
 import '../lib/triumphs_handler.dart';
 import '../lib/twitch_handler.dart';
@@ -28,11 +31,13 @@ String _getConfigValue(String name) {
   return value;
 }
 
-void main() {
+main() async {
   Logger.root.level = Level.ALL;
   Logger.root.onRecord.listen((LogRecord rec) {
     print('${rec.level.name}: ${rec.time}: ${rec.loggerName}: ${rec.message}');
   });
+
+  await initializeTimeZone();
 
   final log = new Logger('DestinySlackBot');
   final portEnv = Platform.environment['PORT'];
@@ -45,6 +50,8 @@ void main() {
   final useDelayedResponses =
       _getConfigValue('USE_DELAYED_RESPONSES') == 'true';
   final twitchStreamers = _getConfigValue('TWITCH_STREAMERS').split(',');
+  final theHundredAuthToken = _getConfigValue('THE_HUNDRED_AUTH_TOKEN');
+  final theHundredGroupId = _getConfigValue('THE_HUNDRED_GROUP_ID');
 
   final commandRouter = router()
     ..get('/', (_) => new shelf.Response.ok('This is the Destiny bot!'))
@@ -55,13 +62,16 @@ void main() {
     ..addAll(new XurHandler(), path: '/xur')
     ..addAll(new TwitchHandler(twitchStreamers), path: '/twitch')
     ..addAll(new WeeklyHandler(), path: '/weekly')
-    ..addAll(new TriumphsHandler(), path: '/triumphs');
+    ..addAll(new TriumphsHandler(), path: '/triumphs')
+    ..addAll(new LfgHandler(), path: '/lfg');
 
   final handler = const shelf.Pipeline()
       .addMiddleware(
           shelf.logRequests(logger: (String message, _) => log.info(message)))
       .addMiddleware(BungieMiddleWare.get(bungieApiKey, worldDatabase))
       .addMiddleware(SlackMiddleware.get(slackTokens, useDelayedResponses))
+      .addMiddleware(
+          TheHundredMiddleWare.get(theHundredAuthToken, theHundredGroupId))
       .addHandler(commandRouter.handler);
 
   runZoned(() {

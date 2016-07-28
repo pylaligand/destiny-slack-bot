@@ -6,7 +6,7 @@ import 'package:shelf/shelf.dart' as shelf;
 import 'bungie_database.dart';
 import 'context_params.dart' as param;
 
-/// Attaches an actionable BungieClient to incoming requests.
+/// Attaches an actionable [BungieClient] to incoming requests.
 class BungieMiddleWare {
   static shelf.Middleware get(String apiKey, String db) =>
       (shelf.Handler handler) {
