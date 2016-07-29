@@ -34,6 +34,12 @@ class Game {
 
   @override
   String toString() => '$creator - $title - $startDate';
+
+  @override
+  bool operator ==(Object other) => other is Game && id == other.id;
+
+  @override
+  int get hashCode => id.hashCode;
 }
 
 /// Client for the the100.io API.
