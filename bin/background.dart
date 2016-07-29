@@ -92,19 +92,29 @@ _monitorTheHundred(
   final logger = new Logger('TheHundred');
   final client = new TheHundredClient(authToken, groupId);
   List<Game> oldGames = await client.getAllGames();
-  new Timer.periodic(const Duration(minutes: 15), (_) async {
+  const period = const Duration(minutes: 15);
+  new Timer.periodic(period, (_) async {
     logger.info('Checking...');
     final newGames = await client.getAllGames();
     newGames.where((game) => !oldGames.contains(game)).forEach((game) {
       logger.info('New game: $game');
-      final url = 'https://www.the100.io/gaming_sessions/${game.id}';
-      final platform = game.platform == Platform.xbox ? 'Xbox' : 'Playstation';
       sender({
         'text':
-            ':vanguard:  <$url|New game> by ${game.creator} on $platform: ${game.title}  :vanguard:',
+            ':vanguard:  <${game.url}|New game> by ${game.creator} on ${game.platformLabel}: ${game.title}  :vanguard:',
         'unfurl_media': 'false',
-        'unfurl_links': 'false',
+        'unfurl_links': 'false'
       }, logger);
+    });
+    final now = new TZDateTime.now(client.location);
+    newGames.forEach((game) {
+      if (game.startDate.difference(now) <= period) {
+        sender({
+          'text':
+              ':vanguard:  <${game.url}|${game.title}> by ${game.creator} on ${game.platformLabel} is about to start  :vanguard:',
+          'unfurl_media': 'false',
+          'unfurl_links': 'false'
+        }, logger);
+      }
     });
     oldGames = newGames;
   });

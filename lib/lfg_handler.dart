@@ -37,7 +37,7 @@ class LfgHandler extends SlackCommandHandler {
     games.forEach(_log.info);
     if (games.isEmpty) {
       return createErrorAttachment(
-          'No game scheduled, wanna <https://www.the100.io/gaming_sessions/new?group_id=${client.groupId}|create one>?');
+          'No game scheduled, wanna <${client.gameCreationUrl}|create one>?');
     }
     final attachments = new Iterable.generate(games.length)
         .map((index) => _generateAttachment(games, index))
@@ -69,12 +69,12 @@ class LfgHandler extends SlackCommandHandler {
     result['color'] = _COLORS[index % _COLORS.length];
     result['author_name'] = date;
     result['title'] = game.title;
-    result['title_link'] = 'https://www.the100.io/gaming_sessions/${game.id}';
+    result['title_link'] = game.url;
     result['text'] = game.description;
     final isPlaying = (Player player) => !player.inReserve;
     final fields = [
       _createField('Creator', _getGamertagDisplay(game.creator), short: true),
-      _createField('Platform', _getPlatform(game), short: true),
+      _createField('Platform', game.platformLabel, short: true),
       _createField(
           'Players',
           game.players.any(isPlaying)
@@ -100,18 +100,6 @@ class LfgHandler extends SlackCommandHandler {
   /// Create a field component for an attachment.
   Map _createField(String title, String content, {bool short: false}) =>
       {'title': title, 'value': content, 'short': short.toString()};
-
-  /// Returns a user-friendly name for a game's platform.
-  String _getPlatform(Game game) {
-    switch (game.platform) {
-      case Platform.xbox:
-        return 'Xbox';
-      case Platform.playstation:
-        return 'Playstation';
-      default:
-        return 'Unknown';
-    }
-  }
 
   /// Formats a gamertag in a (potentially) Slack-friendly way.
   String _getGamertagDisplay(String gamertag) =>
