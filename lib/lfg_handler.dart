@@ -12,8 +12,10 @@ import 'slack_format.dart';
 import 'the_hundred_client.dart';
 
 const _OPTION_HELP = 'help';
+const _OPTION_XBL = 'xbl';
+const _OPTION_PSN = 'psn';
 
-const _COLORS = const ['#4285f4', '#0f9d58', '#f4b400', '#db4437'];
+const _COLORS = const ['#4285f4', '#f4b400', '#0f9d58', '#db4437'];
 
 /// Exposes LFG functionality.
 class LfgHandler extends SlackCommandHandler {
@@ -30,7 +32,7 @@ class LfgHandler extends SlackCommandHandler {
       return createTextResponse('View upcoming gaming sessions', private: true);
     }
     _log.info('@$username looking up games');
-    final games = await client.getAllGames();
+    final games = _filterByPlatform(await client.getAllGames(), option);
     _log.info('${games.length} game(s)');
     games.forEach(_log.info);
     if (games.isEmpty) {
@@ -40,6 +42,21 @@ class LfgHandler extends SlackCommandHandler {
         .map((index) => _generateAttachment(games, index))
         .toList();
     return createAttachmentsResponse(attachments);
+  }
+
+  /// Filters games by platform based on user input.
+  List<Game> _filterByPlatform(List<Game> games, String option) {
+    if (option == _OPTION_XBL) {
+      _log.info('Focusing on Xbox');
+      return games.where((game) => game.platform == Platform.xbox).toList();
+    } else if (option == _OPTION_PSN) {
+      _log.info('Focusing on Playstation');
+      return games
+          .where((game) => game.platform == Platform.playstation)
+          .toList();
+    } else {
+      return games;
+    }
   }
 
   /// Generates an attachment representing a game.
