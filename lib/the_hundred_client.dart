@@ -32,6 +32,12 @@ class Game {
   const Game(this.id, this.groupId, this.title, this.description, this.creator,
       this.startDate, this.platform, this.players);
 
+  /// Returns the URL of the gaming session.
+  String get url => 'https://www.the100.io/gaming_sessions/$id';
+
+  String get platformLabel =>
+      platform == Platform.xbox ? 'Xbox' : 'Playstation';
+
   @override
   String toString() => '$creator - $title - $startDate';
 
@@ -54,8 +60,12 @@ class TheHundredClient {
 
   static const _BASE = 'https://www.the100.io/api/v1';
 
-  /// Returns the id of the the100 group.
-  String get groupId => _groupId;
+  /// Returns the URL of the game creation page for the group.
+  String get gameCreationUrl =>
+      'https://www.the100.io/gaming_sessions/new?group_id=$_groupId';
+
+  /// Returns the location used to set the timezone on dates.
+  Location get location => _location;
 
   /// Returns the list of all upcoming games in the group.
   Future<List<Game>> getAllGames() async {
