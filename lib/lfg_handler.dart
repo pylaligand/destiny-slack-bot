@@ -36,7 +36,8 @@ class LfgHandler extends SlackCommandHandler {
     _log.info('${games.length} game(s)');
     games.forEach(_log.info);
     if (games.isEmpty) {
-      return createErrorAttachment('No game scheduled.');
+      return createErrorAttachment(
+          'No game scheduled, wanna <https://www.the100.io/gaming_sessions/new?group_id=${client.groupId}|create one>?');
     }
     final attachments = new Iterable.generate(games.length)
         .map((index) => _generateAttachment(games, index))

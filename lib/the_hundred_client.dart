@@ -21,6 +21,7 @@ class Player {
 /// A gaming session.
 class Game {
   final String id;
+  final String groupId;
   final String title;
   final String description;
   final String creator;
@@ -28,7 +29,7 @@ class Game {
   final Platform platform;
   final List<Player> players;
 
-  const Game(this.id, this.title, this.description, this.creator,
+  const Game(this.id, this.groupId, this.title, this.description, this.creator,
       this.startDate, this.platform, this.players);
 
   @override
@@ -47,6 +48,9 @@ class TheHundredClient {
 
   static const _BASE = 'https://www.the100.io/api/v1';
 
+  /// Returns the id of the the100 group.
+  String get groupId => _groupId;
+
   /// Returns the list of all upcoming games in the group.
   Future<List<Game>> getAllGames() async {
     final url = '$_BASE/groups/$_groupId/gaming_sessions';
@@ -54,6 +58,7 @@ class TheHundredClient {
     return json
         .map((game) => new Game(
             game['id'],
+            _groupId,
             game['category'],
             game['name'],
             game['creator_gamertag'],
