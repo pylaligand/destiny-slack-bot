@@ -73,7 +73,7 @@ class LfgHandler extends SlackCommandHandler {
     result['text'] = game.description;
     final isPlaying = (Player player) => !player.inReserve;
     final fields = [
-      _createField('Creator', _getGamertagDisplay(game.creator), short: true),
+      _createField('Creator', game.creator, short: true),
       _createField('Platform', game.platformLabel, short: true),
       _createField(
           'Players',
@@ -101,11 +101,7 @@ class LfgHandler extends SlackCommandHandler {
   Map _createField(String title, String content, {bool short: false}) =>
       {'title': title, 'value': content, 'short': short.toString()};
 
-  /// Formats a gamertag in a (potentially) Slack-friendly way.
-  String _getGamertagDisplay(String gamertag) =>
-      '@${gamertag.replaceAll(' ', '_')}';
-
   /// Generates a list of players in a game.
   String _listPlayers(Iterable<Player> players) =>
-      players.map((player) => _getGamertagDisplay(player.gamertag)).join('\n');
+      players.map((player) => player.gamertag).join('\n');
 }

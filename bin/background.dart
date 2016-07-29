@@ -107,7 +107,8 @@ _monitorTheHundred(
     });
     final now = new TZDateTime.now(client.location);
     newGames.forEach((game) {
-      if (game.startDate.difference(now) <= period) {
+      final timeToGo = game.startDate.difference(now);
+      if (Duration.ZERO <= timeToGo && timeToGo <= period) {
         sender({
           'text':
               ':vanguard:  <${game.url}|${game.title}> by ${game.creator} on ${game.platformLabel} is about to start  :vanguard:',
