@@ -62,10 +62,13 @@ class WeeklyHandler extends SlackCommandHandler {
   }
 
   String _getCooBoss() {
-    const bosses = const ['Thalnok, Fanatic of Crota', 'Kagoor', 'Balwur'];
-    final ttkReleaseDate = new DateTime(2015, 9, 22, 1);
-    final now = new DateTime.now();
-    final durationWeeks = now.difference(ttkReleaseDate).inDays / 7;
+    const bosses = const ['Thalnok, Fanatic of Crota', 'Balwur', 'Kagoor'];
+    // Date where the boss is known to have been the first of the list.
+    // Note that there was a schedule shift when update 2.3.0 was introduced,
+    // hence the use of a date (much) later that TTK's release date.
+    final baseDate = new DateTime.utc(2016, 6, 14, 8);
+    final now = new DateTime.now().toUtc();
+    final durationWeeks = now.difference(baseDate).inDays / 7;
     final index = durationWeeks.round() % 3;
     return bosses[index];
   }
