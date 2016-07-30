@@ -6,6 +6,7 @@ import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:timezone/standalone.dart';
 
+import 'clients/slack_client.dart';
 import 'context_params.dart' as param;
 import 'slack_command_handler.dart';
 import 'slack_format.dart';
@@ -24,7 +25,8 @@ class LfgHandler extends SlackCommandHandler {
   @override
   Future<shelf.Response> handle(shelf.Request request) async {
     final params = request.context;
-    final TheHundredClient client = params[param.THE_HUNDRED_CLIENT];
+    final TheHundredClient theHundredClient = params[param.THE_HUNDRED_CLIENT];
+    final SlackClient slackClient = params[param.SLACK_CLIENT];
     final option = params[param.SLACK_TEXT];
     final username = params[param.SLACK_USERNAME];
     if (option == _OPTION_HELP) {
@@ -32,15 +34,20 @@ class LfgHandler extends SlackCommandHandler {
       return createTextResponse('View upcoming gaming sessions', private: true);
     }
     _log.info('@$username looking up games');
-    final games = _filterByPlatform(await client.getAllGames(), option);
+    final games =
+        _filterByPlatform(await theHundredClient.getAllGames(), option);
     _log.info('${games.length} game(s)');
     games.forEach(_log.info);
     if (games.isEmpty) {
       return createErrorAttachment(
-          'No game scheduled, wanna <${client.gameCreationUrl}|create one>?');
+          'No game scheduled, wanna <${theHundredClient.gameCreationUrl}|create one>?');
     }
+    final userId = params[param.SLACK_USER_ID];
+    final timezone = await slackClient.getUserTimezone(userId);
+    final location =
+        timezone != null ? getLocation(timezone) : theHundredClient.location;
     final attachments = new Iterable.generate(games.length)
-        .map((index) => _generateAttachment(games, index))
+        .map((index) => _generateAttachment(games, index, location))
         .toList();
     return createAttachmentsResponse(attachments);
   }
@@ -61,10 +68,10 @@ class LfgHandler extends SlackCommandHandler {
   }
 
   /// Generates an attachment representing a game.
-  Map _generateAttachment(List<Game> games, int index) {
+  Map _generateAttachment(List<Game> games, int index, Location location) {
     final game = games[index];
     final result = {};
-    final date = _formatDate(game.startDate);
+    final date = _formatDate(new TZDateTime.from(game.startDate, location));
     result['fallback'] = '${game.title} - $date';
     result['color'] = _COLORS[index % _COLORS.length];
     result['author_name'] = date;
@@ -97,7 +104,7 @@ class LfgHandler extends SlackCommandHandler {
   String _formatDate(TZDateTime date) {
     final hour = date.hour % 12;
     final amPm = date.hour < 12 ? 'am' : 'pm';
-    return '${date.month}/${date.day} ${hour != 0 ? hour : 12}:${date.minute.toString().padLeft(2, '0')}$amPm';
+    return '${date.month}/${date.day} ${hour != 0 ? hour : 12}:${date.minute.toString().padLeft(2, '0')}$amPm ${date.timeZoneName}';
   }
 
   /// Create a field component for an attachment.

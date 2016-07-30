@@ -52,6 +52,7 @@ main() async {
   final twitchStreamers = _getConfigValue('TWITCH_STREAMERS').split(',');
   final theHundredAuthToken = _getConfigValue('THE_HUNDRED_AUTH_TOKEN');
   final theHundredGroupId = _getConfigValue('THE_HUNDRED_GROUP_ID');
+  final slackAuthToken = _getConfigValue('SLACK_BOT_TOKEN');
 
   final commandRouter = router()
     ..get('/', (_) => new shelf.Response.ok('This is the Destiny bot!'))
@@ -69,7 +70,8 @@ main() async {
       .addMiddleware(
           shelf.logRequests(logger: (String message, _) => log.info(message)))
       .addMiddleware(BungieMiddleWare.get(bungieApiKey, worldDatabase))
-      .addMiddleware(SlackMiddleware.get(slackTokens, useDelayedResponses))
+      .addMiddleware(
+          SlackMiddleware.get(slackTokens, useDelayedResponses, slackAuthToken))
       .addMiddleware(
           TheHundredMiddleWare.get(theHundredAuthToken, theHundredGroupId))
       .addHandler(commandRouter.handler);
