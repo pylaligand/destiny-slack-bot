@@ -27,19 +27,35 @@ class Game {
   final String creator;
   final TZDateTime startDate;
   final Platform platform;
+
+  /// Desired team size.
+  final int teamSize;
+
+  /// Current team size.
+  /// Might be greater than the size of [players] if unregistered players were
+  /// declared.
+  final int playerCount;
   final List<Player> players;
 
-  const Game(this.id, this.groupId, this.title, this.description, this.creator,
-      this.startDate, this.platform, this.players);
+  const Game(
+      this.id,
+      this.groupId,
+      this.title,
+      this.description,
+      this.creator,
+      this.startDate,
+      this.platform,
+      this.teamSize,
+      this.playerCount,
+      this.players);
 
   /// Returns the URL of the gaming session.
   String get url => 'https://www.the100.io/gaming_sessions/$id';
 
-  String get platformLabel =>
-      platform == Platform.xbox ? 'Xbox' : 'Playstation';
+  String get platformLabel => platform == Platform.xbox ? 'XB' : 'PS';
 
   @override
-  String toString() => '$creator - $title - $startDate';
+  String toString() => '$creator | $title | $startDate';
 
   @override
   bool operator ==(Object other) => other is Game && id == other.id;
@@ -82,6 +98,8 @@ class TheHundredClient {
             game['platform'].startsWith('xbox')
                 ? Platform.xbox
                 : Platform.playstation,
+            game['team_size'],
+            game['primary_users_count'],
             game['confirmed_sessions']
                 .map((player) => new Player(
                     player['user']['gamertag'], player['reserve_spot']))

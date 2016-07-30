@@ -73,12 +73,15 @@ class LfgHandler extends SlackCommandHandler {
     result['text'] = game.description;
     final isPlaying = (Player player) => !player.inReserve;
     final fields = [
-      _createField('Creator', game.creator, short: true),
+      _createField('Creator', game.creator),
       _createField('Platform', game.platformLabel, short: true),
+      _createField('Spots left', (game.teamSize - game.playerCount).toString(),
+          short: true),
       _createField(
           'Players',
           game.players.any(isPlaying)
-              ? _listPlayers(game.players.where(isPlaying))
+              ? _listPlayers(game.players.where(isPlaying),
+                  total: game.playerCount)
               : 'none')
     ];
     final isReserve = (Player player) => player.inReserve;
@@ -99,9 +102,10 @@ class LfgHandler extends SlackCommandHandler {
 
   /// Create a field component for an attachment.
   Map _createField(String title, String content, {bool short: false}) =>
-      {'title': title, 'value': content, 'short': short.toString()};
+      {'title': title, 'value': content, 'short': short};
 
   /// Generates a list of players in a game.
-  String _listPlayers(Iterable<Player> players) =>
-      players.map((player) => player.gamertag).join('\n');
+  String _listPlayers(Iterable<Player> players, {int total: 0}) =>
+      players.map((player) => player.gamertag).join('\n') +
+      ((total > players.length) ? '\n+ ${total - players.length}' : '');
 }
