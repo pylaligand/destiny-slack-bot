@@ -52,6 +52,9 @@ yet.
 
 - Twitch
   - when a stream goes live
+- LFG
+  - when a game is created
+  - when a game is about to start
 
 ## Configuration
 
@@ -73,7 +76,7 @@ see next section
 - `USE_DELAYED_RESPONSES`: whether to use a [delayed response](https://api.slack.com/slash-commands#responding_to_a_command)
 when a query takes too long
 - `TWITCH_STREAMERS`: comma-separated list of Twitch streamers to monitor
-- `SLACK_BOT_TOKEN`: auth token for the [bot user](https://my.slack.com/services/new/bot)
+- `SLACK_BOT_TOKEN`: auth token for the [bot user](https://my.slack.com/services/new/bot); note that this token will also be used for slash commands
 - `SLACK_BOT_CHANNEL`: name of the channel where notifications will be posted (note: the bot needs to be [manually invited](https://github.com/slackhq/node-slack-sdk/issues/26)
 to the channel first)
 - `THE_HUNDRED_AUTH_TOKEN`: auth token to identify with the the100 service (can be found as the `auth_token` cookie on the site)
