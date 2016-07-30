@@ -1,18 +1,14 @@
 // Copyright (c) 2016 P.Y. Laligand
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io' as io;
 
-import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:timezone/standalone.dart';
 
+import '../lib/clients/slack_client.dart';
 import '../lib/the_hundred_client.dart';
 import '../lib/twitch_scanner.dart';
-
-/// An entity sending messages to Slack.
-typedef Future<bool> MessageSender(Map content, Logger logger);
 
 /// Returns the value for [name] in the server configuration.
 String _getConfigValue(String name) {
@@ -35,30 +31,15 @@ main(List<String> args) async {
   final theHundredAuthToken = _getConfigValue('THE_HUNDRED_AUTH_TOKEN');
   final theHundredGroupdId = _getConfigValue('THE_HUNDRED_GROUP_ID');
 
-  final sender = (Map content, Logger logger) async {
-    content['token'] = slackBotToken;
-    content['channel'] = slackBotChannel;
-    content['as_user'] = 'true';
-    final postUrl = new Uri.https('slack.com', 'api/chat.postMessage', content);
-    return http.post(postUrl).then((response) {
-      final json = JSON.decode(response.body);
-      if (!json['ok']) {
-        logger.warning('Message not published: ${json['error']}');
-        return false;
-      }
-      return true;
-    }).catchError((error) {
-      logger.warning('Message request failed: $error');
-      return false;
-    });
-  };
+  final client = new SlackClient(slackBotToken);
 
-  _monitorTwitch(sender);
-  _monitorTheHundred(theHundredAuthToken, theHundredGroupdId, sender);
+  _monitorTwitch(client, slackBotChannel);
+  _monitorTheHundred(
+      theHundredAuthToken, theHundredGroupdId, client, slackBotChannel);
 }
 
 /// Monitors the status of Twitch streamers and sends notifications to Slack.
-_monitorTwitch(MessageSender sender) async {
+_monitorTwitch(SlackClient client, String channel) async {
   final logger = new Logger('Twitch');
   final scanner =
       new TwitchScanner(_getConfigValue('TWITCH_STREAMERS').split(','));
@@ -72,12 +53,9 @@ _monitorTwitch(MessageSender sender) async {
         .where((streamer) => !oldStreamers.contains(streamer))
         .forEach((streamer) {
       logger.info('$streamer is now online!');
-      sender({
-        'text':
-            ':twitch:  Now streaming: <https://www.twitch.tv/${streamer.id}|${streamer.name}> - ${streamer.status}  :twitch:',
-        'unfurl_media': 'false',
-        'unfurl_links': 'false'
-      }, logger);
+      client.sendMessage(
+          ':twitch:  Now streaming: <https://www.twitch.tv/${streamer.id}|${streamer.name}> - ${streamer.status}  :twitch:',
+          channel);
     });
     oldStreamers
         .where((streamer) => !newStreamers.contains(streamer))
@@ -87,8 +65,8 @@ _monitorTwitch(MessageSender sender) async {
 }
 
 /// Monitors activity on the100.io and reports to Slack.
-_monitorTheHundred(
-    String authToken, String groupId, MessageSender sender) async {
+_monitorTheHundred(String authToken, String groupId, SlackClient slackClient,
+    String channel) async {
   final logger = new Logger('TheHundred');
   final client = new TheHundredClient(authToken, groupId);
   List<Game> oldGames = await client.getAllGames();
@@ -98,23 +76,17 @@ _monitorTheHundred(
     final newGames = await client.getAllGames();
     newGames.where((game) => !oldGames.contains(game)).forEach((game) {
       logger.info('New game: $game');
-      sender({
-        'text':
-            ':vanguard:  <${game.url}|New game> by ${game.creator} on ${game.platformLabel}: ${game.title}  :vanguard:',
-        'unfurl_media': 'false',
-        'unfurl_links': 'false'
-      }, logger);
+      slackClient.sendMessage(
+          ':vanguard:  <${game.url}|New game> by ${game.creator} on ${game.platformLabel}: ${game.title}  :vanguard:',
+          channel);
     });
     final now = new TZDateTime.now(client.location);
     newGames.forEach((game) {
       final timeToGo = game.startDate.difference(now);
       if (Duration.ZERO <= timeToGo && timeToGo <= period) {
-        sender({
-          'text':
-              ':vanguard:  <${game.url}|${game.title}> by ${game.creator} on ${game.platformLabel} is about to start  :vanguard:',
-          'unfurl_media': 'false',
-          'unfurl_links': 'false'
-        }, logger);
+        slackClient.sendMessage(
+            ':vanguard:  <${game.url}|${game.title}> by ${game.creator} on ${game.platformLabel} is about to start  :vanguard:',
+            channel);
       }
     });
     oldGames = newGames;
