@@ -15,7 +15,13 @@ class SlackClient {
 
   /// Posts a message to a channel.
   Future<bool> sendMessage(String message, String channel) async {
-    final content = {'channel': channel, 'as_user': 'true', 'text': message};
+    final content = {
+      'channel': channel,
+      'as_user': 'true',
+      'text': message,
+      'unfurl_links': 'false',
+      'unfurl_media': 'false'
+    };
     final url = _getUrl('chat.postMessage', content);
     final json = await _getJson(url);
     return json != null;
