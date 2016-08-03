@@ -79,7 +79,7 @@ when a query takes too long
 - `SLACK_BOT_TOKEN`: auth token for the [bot user](https://my.slack.com/services/new/bot); note that this token will also be used for slash commands
 - `SLACK_BOT_CHANNEL`: name of the channel where notifications will be posted (note: the bot needs to be [manually invited](https://github.com/slackhq/node-slack-sdk/issues/26)
 to the channel first)
-- `THE_HUNDRED_AUTH_TOKEN`: auth token to identify with the the100 service (can be found as the `auth_token` cookie on the site)
+- `THE_HUNDRED_AUTH_TOKEN`: the100 [group API key](https://mlapeter.gitbooks.io/the-100-api/content/)
 - `THE_HUNDRED_GROUP_ID`: your the100 group id, found at `https://www.the100.io/groups/{group_id}`
 
 ## Database
