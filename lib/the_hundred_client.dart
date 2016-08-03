@@ -110,8 +110,9 @@ class TheHundredClient {
   /// Returns the response to a URL request as parsed JSON, or null if the
   /// request failed.
   dynamic _getJson(String url) async {
-    final body = await http.read(url,
-        headers: {'Cookie': 'auth_token=$_authToken'}).catchError((e, _) {
+    final body = await http.read(url, headers: {
+      'Authorization': 'Token token="$_authToken"'
+    }).catchError((e, _) {
       _log.warning('Failed request: $e');
       return null;
     });
