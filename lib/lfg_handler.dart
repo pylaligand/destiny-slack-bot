@@ -84,9 +84,8 @@ class LfgHandler extends SlackCommandHandler {
     final isPlaying = (Player player) => !player.inReserve;
     final fields = [
       _createField('Creator', game.creator),
-      _createField('Platform', game.platformLabel, short: true),
-      _createField('Spots', (game.teamSize - game.playerCount).toString(),
-          short: true),
+      _createField('Platform', game.platformLabel),
+      _createField('Spots', (game.teamSize - game.playerCount).toString()),
       _createField(
           'Players',
           game.players.any(isPlaying)
