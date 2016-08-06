@@ -9,6 +9,7 @@ import 'package:shelf/shelf.dart' as shelf;
 import 'context_params.dart' as param;
 import 'slack_command_handler.dart';
 import 'slack_format.dart';
+import 'utils/players.dart' as players;
 
 const _OPTION_HELP = 'help';
 
@@ -28,27 +29,17 @@ class TriumphsHandler extends SlackCommandHandler {
           'Looks up a given player\'s completion on Moments of Triumph',
           private: true);
     }
-    final String gamertag = _getGamertag(userName, text);
-    _log.info('@$userName looking up "$gamertag"');
-    lookUp() async {
-      final directId = await client.getDestinyId(gamertag);
-      if (directId != null) {
-        return directId;
-      }
-      if (!gamertag.contains('_')) {
-        return null;
-      }
-      final alteredGamertag = gamertag.replaceAll('_', ' ');
-      _log.info('Trying alternate gamertag "$alteredGamertag"');
-      return await client.getDestinyId(alteredGamertag);
+
+    _log.info('@$userName looking up "$text"');
+    final player = await players.lookUp(client, userName, text);
+    final gamertag = player.gamertag;
+    if (!player.wasFound) {
+      _log.warning('Could not identify gamertag "$gamertag".');
+      return createTextResponse('Unable to identify "gamertag"', private: true);
     }
-    final id = await lookUp();
-    if (id == null) {
-      _log.warning('Could not identify gamertag.');
-      return createTextResponse('Unable to identify "$gamertag"',
-          private: true);
-    }
-    _log.info('Found id: $id');
+    final id = player.id;
+    _log.info('Found id $id for $gamertag');
+
     final progress = await client.getTriumphsProgress(id);
     if (progress != null) {
       _log.info('Progress is $progress%');
@@ -60,16 +51,5 @@ class TriumphsHandler extends SlackCommandHandler {
       return createTextResponse('Could not find progress for $gamertag',
           private: true);
     }
-  }
-
-  /// Returns the gamertag to look for based on the request parameters.
-  static String _getGamertag(String userName, String text) {
-    if (text == null || text.isEmpty) {
-      return userName;
-    }
-    if (text[0] == '@') {
-      return text.substring(1);
-    }
-    return text;
   }
 }
