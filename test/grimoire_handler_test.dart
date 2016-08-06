@@ -85,7 +85,7 @@ void main() {
     context[param.SLACK_TEXT] = '';
     final json = await getResponse(handler, context);
     expect(json['response_type'], equals('in_channel'));
-    expect(json['text'], contains(_USER_TWO));
+    expect(json['text'], contains(_USER_TWO_GAMERTAG));
     expect(json['text'], contains(_SCORE.toString()));
   });
 
