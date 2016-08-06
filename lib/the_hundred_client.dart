@@ -1,11 +1,11 @@
 // Copyright (c) 2016 P.Y. Laligand
 
 import 'dart:async';
-import 'dart:convert';
 
-import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:timezone/standalone.dart';
+
+import 'utils/json.dart' as json;
 
 /// The platform a game is scheduled on.
 enum Platform { xbox, playstation }
@@ -109,21 +109,8 @@ class TheHundredClient {
 
   /// Returns the response to a URL request as parsed JSON, or null if the
   /// request failed.
-  dynamic _getJson(String url) async {
-    final body = await http.read(url, headers: {
-      'Authorization': 'Token token="$_authToken"'
-    }).catchError((e, _) {
-      _log.warning('Failed request: $e');
-      return null;
-    });
-    if (body == null) {
-      return null;
-    }
-    try {
-      return JSON.decode(body);
-    } on FormatException catch (e) {
-      _log.warning('Failed to decode content: $e');
-      return null;
-    }
+  Future<dynamic> _getJson(String url) async {
+    return json.get(url, _log,
+        headers: {'Authorization': 'Token token="$_authToken"'});
   }
 }
