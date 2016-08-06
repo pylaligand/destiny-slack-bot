@@ -1,10 +1,10 @@
 // Copyright (c) 2016 P.Y. Laligand
 
 import 'dart:async';
-import 'dart:convert';
 
-import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
+
+import '../utils/json.dart' as json;
 
 /// Client for the Slack API.
 class SlackClient {
@@ -43,25 +43,12 @@ class SlackClient {
 
   /// Requests JSON data from the given URL.
   /// Returns null if the request failed.
-  dynamic _getJson(Uri url) async {
-    final body = await http.read(url).catchError((e, _) {
-      _log.warning('Failed request: $e');
-      return null;
-    });
-    if (body == null) {
-      _log.warning('Empty response');
+  Future<dynamic> _getJson(Uri url) async {
+    final result = await json.get(url.toString(), _log);
+    if (!result['ok']) {
+      _log.warning('Error in response: ${result['error']}');
       return null;
     }
-    try {
-      final json = JSON.decode(body);
-      if (!json['ok']) {
-        _log.warning('Error in response: ${json['error']}');
-        return null;
-      }
-      return json;
-    } on FormatException catch (e) {
-      _log.warning('Failed to decode content: $e');
-      return null;
-    }
+    return result;
   }
 }

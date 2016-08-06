@@ -1,9 +1,10 @@
 // Copyright (c) 2016 P.Y. Laligand
 
 import 'dart:async';
-import 'dart:convert';
 
-import 'package:http/http.dart' as http;
+import 'package:logging/logging.dart';
+
+import 'utils/json.dart' as json;
 
 /// Stats of a given guardian.
 class Guardian implements Comparable {
@@ -26,7 +27,10 @@ class GuardianGgClient {
   /// Returns stats for the given player and their most recent fireteam members.
   Future<List<Guardian>> getTrialsStats(String destinyId) async {
     final url = 'https://api.guardian.gg/fireteam/14/$destinyId';
-    final data = await _getJson(url);
+    final data = await json.get(url, new Logger('GuardianGgClient'));
+    if (data == null) {
+      return [];
+    }
     return data.map((Map guardian) {
       final destinyId = guardian['membershipId'];
       final name = guardian['name'];
@@ -36,9 +40,5 @@ class GuardianGgClient {
           (deaths > 0 ? (guardian['kills'] / deaths) : 0).toStringAsFixed(2));
       return new Guardian(destinyId, name, elo, kd);
     }).toList()..sort();
-  }
-
-  static dynamic _getJson(String url) async {
-    return JSON.decode(await http.read(url));
   }
 }
