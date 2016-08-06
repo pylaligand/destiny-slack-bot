@@ -19,6 +19,7 @@ import '../lib/the_hundred_middleware.dart';
 import '../lib/trials_handler.dart';
 import '../lib/triumphs_handler.dart';
 import '../lib/twitch_handler.dart';
+import '../lib/wasted_handler.dart';
 import '../lib/weekly_handler.dart';
 import '../lib/xur_handler.dart';
 
@@ -64,7 +65,8 @@ main() async {
     ..addAll(new TwitchHandler(twitchStreamers), path: '/twitch')
     ..addAll(new WeeklyHandler(), path: '/weekly')
     ..addAll(new TriumphsHandler(), path: '/triumphs')
-    ..addAll(new LfgHandler(), path: '/lfg');
+    ..addAll(new LfgHandler(), path: '/lfg')
+    ..addAll(new WastedHandler(), path: '/wasted');
 
   final handler = const shelf.Pipeline()
       .addMiddleware(

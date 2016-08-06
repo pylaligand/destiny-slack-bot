@@ -47,6 +47,9 @@ yet.
 - LFG
   - `/lfg`
   - list games on [the100.io](https://www.the100.io)
+- Time "wasted" on Destiny
+  - `/wasted`
+  - view time spent playing Destiny according to [wastedondestiny.com](https://www.wastedondestiny.com)
 
 ## Notifications
 
