@@ -11,8 +11,8 @@ shelf.Response createTextResponse(String content,
   if (!private) {
     json['response_type'] = 'in_channel';
   }
-  json['unfurl_media'] = expandLinks.toString();
-  json['unfurl_links'] = expandLinks.toString();
+  json['unfurl_media'] = expandLinks;
+  json['unfurl_links'] = expandLinks;
   json['text'] = content;
   final body = JSON.encode(json);
   final headers = {'content-type': 'application/json'};
