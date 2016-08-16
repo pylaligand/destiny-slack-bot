@@ -69,7 +69,7 @@ class WeeklyHandler extends SlackCommandHandler {
     final baseDate = new DateTime.utc(2016, 6, 14, 8);
     final now = new DateTime.now().toUtc();
     final durationWeeks = now.difference(baseDate).inDays / 7;
-    final index = durationWeeks.round() % 3;
+    final index = durationWeeks.floor() % 3;
     return bosses[index];
   }
 }
