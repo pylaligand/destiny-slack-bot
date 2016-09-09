@@ -36,7 +36,8 @@ class GrimoireHandler extends SlackCommandHandler {
     final gamertag = player.gamertag;
     if (!player.wasFound) {
       _log.warning('Could not identify gamertag "$gamertag".');
-      return createTextResponse('Unable to identify "gamertag"', private: true);
+      return createTextResponse('Unable to identify "$gamertag"',
+          private: true);
     }
     final id = player.id;
     _log.info('Found id $id for $gamertag');
