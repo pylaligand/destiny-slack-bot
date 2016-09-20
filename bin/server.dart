@@ -56,6 +56,8 @@ main() async {
   final theHundredAuthToken = _getConfigValue('THE_HUNDRED_AUTH_TOKEN');
   final theHundredGroupId = _getConfigValue('THE_HUNDRED_GROUP_ID');
   final slackAuthToken = _getConfigValue('SLACK_BOT_TOKEN');
+  final slackClientId = _getConfigValue('SLACK_CLIENT_ID');
+  final slackClientSecret = _getConfigValue('SLACK_CLIENT_SECRET');
 
   final baseMiddleware = const shelf.Pipeline()
       .addMiddleware(
@@ -75,7 +77,8 @@ main() async {
         (Router r) => r
           ..get('/',
               (_) => new shelf.Response.ok('This is the Destiny Slack app!'))
-          ..addAll(new AuthHandler(), path: '/auth')
+          ..addAll(new AuthHandler(slackClientId, slackClientSecret),
+              path: '/auth')
           ..addAll(
               (Router r) => r
                 ..addAll(new TrialsHandler(), path: '/trials')
