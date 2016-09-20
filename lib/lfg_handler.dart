@@ -99,6 +99,15 @@ class LfgHandler extends SlackCommandHandler {
           'Reserves', _listPlayers(game.players.where(isReserve))));
     }
     result['fields'] = fields;
+    result['actions'] = [
+      {
+        'name': 'show_lfg_game',
+        'text': 'Show this game',
+        'type': 'button',
+        'value': index.toString()
+      }
+    ];
+    result['callback_id'] = 'lfg_gamez';
     return result;
   }
 
