@@ -9,6 +9,7 @@ import 'package:shelf/shelf_io.dart' as io;
 import 'package:shelf_route/shelf_route.dart';
 import 'package:timezone/standalone.dart';
 
+import '../lib/auth_handler.dart';
 import '../lib/bungie_middleware.dart';
 import '../lib/card_handler.dart';
 import '../lib/grimoire_handler.dart';
@@ -56,33 +57,45 @@ main() async {
   final theHundredGroupId = _getConfigValue('THE_HUNDRED_GROUP_ID');
   final slackAuthToken = _getConfigValue('SLACK_BOT_TOKEN');
 
-  final commandRouter = router()
-    ..get('/', (_) => new shelf.Response.ok('This is the Destiny bot!'))
-    ..addAll(new TrialsHandler(), path: '/trials')
-    ..addAll(new OnlineHandler(bungieClanId), path: '/online')
-    ..addAll(new GrimoireHandler(), path: '/grimoire')
-    ..addAll(new CardHandler(), path: '/card')
-    ..addAll(new XurHandler(), path: '/xur')
-    ..addAll(new TwitchHandler(twitchStreamers), path: '/twitch')
-    ..addAll(new WeeklyHandler(), path: '/weekly')
-    ..addAll(new TriumphsHandler(), path: '/triumphs')
-    ..addAll(new LfgHandler(), path: '/lfg')
-    ..addAll(new WastedHandler(), path: '/wasted')
-    ..addAll(new ActionsHandler(), path: '/actions');
-
-  final handler = const shelf.Pipeline()
+  final baseMiddleware = const shelf.Pipeline()
       .addMiddleware(
           shelf.logRequests(logger: (String message, _) => log.info(message)))
+      .middleware;
+
+  final commandMiddleware = const shelf.Pipeline()
       .addMiddleware(BungieMiddleWare.get(bungieApiKey, worldDatabase))
       .addMiddleware(
           SlackMiddleware.get(slackTokens, useDelayedResponses, slackAuthToken))
       .addMiddleware(
           TheHundredMiddleWare.get(theHundredAuthToken, theHundredGroupId))
-      .addHandler(commandRouter.handler);
+      .middleware;
+
+  final rootRouter = router()
+    ..addAll(
+        (Router r) => r
+          ..get('/',
+              (_) => new shelf.Response.ok('This is the Destiny Slack app!'))
+          ..addAll(new AuthHandler(), path: '/auth')
+          ..addAll(
+              (Router r) => r
+                ..addAll(new TrialsHandler(), path: '/trials')
+                ..addAll(new OnlineHandler(bungieClanId), path: '/online')
+                ..addAll(new GrimoireHandler(), path: '/grimoire')
+                ..addAll(new CardHandler(), path: '/card')
+                ..addAll(new XurHandler(), path: '/xur')
+                ..addAll(new TwitchHandler(twitchStreamers), path: '/twitch')
+                ..addAll(new WeeklyHandler(), path: '/weekly')
+                ..addAll(new TriumphsHandler(), path: '/triumphs')
+                ..addAll(new LfgHandler(), path: '/lfg')
+                ..addAll(new WastedHandler(), path: '/wasted')
+                ..addAll(new ActionsHandler(), path: '/actions'),
+              path: '/commands',
+              middleware: commandMiddleware),
+        middleware: baseMiddleware);
 
   runZoned(() {
     log.info('Serving on port $port');
-    printRoutes(commandRouter, printer: log.info);
-    io.serve(handler, '0.0.0.0', port);
+    printRoutes(rootRouter, printer: log.info);
+    io.serve(rootRouter.handler, '0.0.0.0', port);
   }, onError: (e, stackTrace) => log.severe('Oh noes! $e $stackTrace'));
 }
