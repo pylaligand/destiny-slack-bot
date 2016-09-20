@@ -58,6 +58,7 @@ main() async {
   final slackAuthToken = _getConfigValue('SLACK_BOT_TOKEN');
   final slackClientId = _getConfigValue('SLACK_CLIENT_ID');
   final slackClientSecret = _getConfigValue('SLACK_CLIENT_SECRET');
+  final slackVerificationToken = _getConfigValue('SLACK_VERIFICATION_TOKEN');
 
   final baseMiddleware = const shelf.Pipeline()
       .addMiddleware(
@@ -79,6 +80,7 @@ main() async {
               (_) => new shelf.Response.ok('This is the Destiny Slack app!'))
           ..addAll(new AuthHandler(slackClientId, slackClientSecret),
               path: '/auth')
+          ..addAll(new ActionsHandler(slackVerificationToken), path: '/actions')
           ..addAll(
               (Router r) => r
                 ..addAll(new TrialsHandler(), path: '/trials')
@@ -90,8 +92,7 @@ main() async {
                 ..addAll(new WeeklyHandler(), path: '/weekly')
                 ..addAll(new TriumphsHandler(), path: '/triumphs')
                 ..addAll(new LfgHandler(), path: '/lfg')
-                ..addAll(new WastedHandler(), path: '/wasted')
-                ..addAll(new ActionsHandler(), path: '/actions'),
+                ..addAll(new WastedHandler(), path: '/wasted'),
               path: '/commands',
               middleware: commandMiddleware),
         middleware: baseMiddleware);
