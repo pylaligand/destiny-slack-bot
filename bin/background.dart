@@ -30,19 +30,21 @@ main(List<String> args) async {
   final slackBotChannel = _getConfigValue('SLACK_BOT_CHANNEL');
   final theHundredAuthToken = _getConfigValue('THE_HUNDRED_AUTH_TOKEN');
   final theHundredGroupdId = _getConfigValue('THE_HUNDRED_GROUP_ID');
+  final twitchClientId = _getConfigValue('TWITCH_CLIENT_ID');
+  final twitchStreamers = _getConfigValue('TWITCH_STREAMERS').split(',');
 
   final client = new SlackClient(slackBotToken);
 
-  _monitorTwitch(client, slackBotChannel);
+  _monitorTwitch(client, slackBotChannel, twitchClientId, twitchStreamers);
   _monitorTheHundred(
       theHundredAuthToken, theHundredGroupdId, client, slackBotChannel);
 }
 
 /// Monitors the status of Twitch streamers and sends notifications to Slack.
-_monitorTwitch(SlackClient client, String channel) async {
+_monitorTwitch(SlackClient client, String channel, String clientId,
+    List<String> streamers) async {
   final logger = new Logger('Twitch');
-  final scanner =
-      new TwitchScanner(_getConfigValue('TWITCH_STREAMERS').split(','));
+  final scanner = new TwitchScanner(clientId, streamers);
   await scanner.update();
   List<Streamer> oldStreamers = scanner.liveStreamers;
   new Timer.periodic(const Duration(minutes: 5), (_) async {
