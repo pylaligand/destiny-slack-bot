@@ -19,8 +19,8 @@ class TwitchHandler extends SlackCommandHandler {
 
   final TwitchScanner _scanner;
 
-  TwitchHandler(List<String> streamers)
-      : _scanner = new TwitchScanner(streamers);
+  TwitchHandler(String clientId, List<String> streamers)
+      : _scanner = new TwitchScanner(clientId, streamers);
 
   @override
   Future<shelf.Response> handle(shelf.Request request) async {

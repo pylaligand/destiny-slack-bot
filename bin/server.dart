@@ -52,6 +52,7 @@ main() async {
   final worldDatabase = _getConfigValue('DATABASE_URL');
   final useDelayedResponses =
       _getConfigValue('USE_DELAYED_RESPONSES') == 'true';
+  final twitchClientId = _getConfigValue('TWITCH_CLIENT_ID');
   final twitchStreamers = _getConfigValue('TWITCH_STREAMERS').split(',');
   final theHundredAuthToken = _getConfigValue('THE_HUNDRED_AUTH_TOKEN');
   final theHundredGroupId = _getConfigValue('THE_HUNDRED_GROUP_ID');
@@ -88,7 +89,8 @@ main() async {
                 ..addAll(new GrimoireHandler(), path: '/grimoire')
                 ..addAll(new CardHandler(), path: '/card')
                 ..addAll(new XurHandler(), path: '/xur')
-                ..addAll(new TwitchHandler(twitchStreamers), path: '/twitch')
+                ..addAll(new TwitchHandler(twitchClientId, twitchStreamers),
+                    path: '/twitch')
                 ..addAll(new WeeklyHandler(), path: '/weekly')
                 ..addAll(new TriumphsHandler(), path: '/triumphs')
                 ..addAll(new LfgHandler(), path: '/lfg')

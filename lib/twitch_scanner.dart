@@ -1,17 +1,20 @@
 // Copyright (c) 2016 P.Y. Laligand
 
-import 'dart:convert';
+import 'package:logging/logging.dart';
 
-import 'package:http/http.dart' as http;
+import 'utils/json.dart' as json;
 
 const _BASE_URL = 'https://api.twitch.tv/kraken/streams?channel=';
 
 /// Checks the status of a list of given Twitch streamers.
 class TwitchScanner {
+  final _log = new Logger('TwitchScanner');
+
+  final String _clientId;
   final String _queryUrl;
   final List<Streamer> _liveStreamers = [];
 
-  TwitchScanner(List<String> streamers)
+  TwitchScanner(this._clientId, List<String> streamers)
       : _queryUrl = '$_BASE_URL${streamers.join(",")}';
 
   /// The list of online streamers.
@@ -19,9 +22,10 @@ class TwitchScanner {
 
   /// Updates the status of the tracked streamers.
   update() async {
-    final json = JSON.decode(await http.read(_queryUrl));
+    final data =
+        await json.get(_queryUrl, _log, headers: {'Client-Id': _clientId});
     _liveStreamers.clear();
-    json['streams']
+    data['streams']
         .map((stream) => new Streamer(
             stream['channel']['name'],
             stream['channel']['display_name'],
