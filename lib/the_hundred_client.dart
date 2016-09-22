@@ -89,7 +89,7 @@ class TheHundredClient {
     final json = await _getJson(url);
     return json
         .map((game) => new Game(
-            game['id'],
+            game['id'].toString(),
             _groupId,
             game['category'],
             game['name'],
@@ -105,6 +105,14 @@ class TheHundredClient {
                     player['user']['gamertag'], player['reserve_spot']))
                 .toList()))
         .toList();
+  }
+
+  /// Returns the game with the given id, or |null| if none could be found.
+  Future<Game> getGame(String id) async {
+    print(id.runtimeType);
+    print('value: |$id|');
+    return (await getAllGames())
+        .firstWhere((game) => game.id == id, orElse: () => null);
   }
 
   /// Returns the response to a URL request as parsed JSON, or null if the

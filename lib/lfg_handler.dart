@@ -11,7 +11,7 @@ import 'context_params.dart' as param;
 import 'slack_command_handler.dart';
 import 'slack_format.dart';
 import 'the_hundred_client.dart';
-import 'utils/dates.dart' as dates;
+import 'utils/game_format.dart';
 
 const _OPTION_HELP = 'help';
 const _OPTION_XBL = 'xbl';
@@ -57,7 +57,7 @@ class LfgHandler extends SlackCommandHandler {
     final attachments = new Iterable.generate(games.length)
         .map((index) => _generateAttachment(games, index, now, shouldFilter))
         .toList();
-    return createAttachmentsResponse(attachments);
+    return createAttachmentsResponse(attachments, private: shouldFilter);
   }
 
   /// Filters games by platform based on user input.
@@ -76,51 +76,6 @@ class LfgHandler extends SlackCommandHandler {
     }
   }
 
-  /// Generates an attachment representing a game.
-  Map _generateAttachment(
-      List<Game> games, int index, TZDateTime now, bool shouldFilter) {
-    final game = games[index];
-    final result = {};
-    final date =
-        _formatDate(new TZDateTime.from(game.startDate, now.location), now);
-    result['fallback'] = '${game.title} - $date';
-    result['color'] = _COLORS[index % _COLORS.length];
-    result['author_name'] = date;
-    result['title'] = game.title;
-    result['title_link'] = game.url;
-    result['text'] = game.description;
-    final isPlaying = (Player player) => !player.inReserve;
-    final fields = [
-      _createField('Creator', game.creator),
-      _createField('Platform', game.platformLabel),
-      _createField('Spots', (game.teamSize - game.playerCount).toString()),
-      _createField(
-          'Players',
-          game.players.any(isPlaying)
-              ? _listPlayers(game.players.where(isPlaying),
-                  total: game.playerCount)
-              : 'none')
-    ];
-    final isReserve = (Player player) => player.inReserve;
-    if (game.players.any(isReserve)) {
-      fields.add(_createField(
-          'Reserves', _listPlayers(game.players.where(isReserve))));
-    }
-    result['fields'] = fields;
-    if (shouldFilter) {
-      result['actions'] = [
-        {
-          'name': 'show_lfg_game',
-          'text': 'Show this game',
-          'type': 'button',
-          'value': index.toString()
-        }
-      ];
-      result['callback_id'] = 'lfg_gamez';
-    }
-    return result;
-  }
-
   /// Identifies the targeted platform.
   _Platform _extractPlatform(String option) {
     switch (option) {
@@ -133,20 +88,9 @@ class LfgHandler extends SlackCommandHandler {
     }
   }
 
-  /// Generates a user-friendly string representing the given date.
-  String _formatDate(TZDateTime date, TZDateTime now) {
-    final day = dates.formatDay(date, now);
-    final hour = date.hour % 12;
-    final amPm = date.hour < 12 ? 'am' : 'pm';
-    return '$day ${hour != 0 ? hour : 12}:${date.minute.toString().padLeft(2, '0')}$amPm ${date.timeZoneName}';
-  }
-
-  /// Create a field component for an attachment.
-  Map _createField(String title, String content, {bool short: false}) =>
-      {'title': title, 'value': content, 'short': short};
-
-  /// Generates a list of players in a game.
-  String _listPlayers(Iterable<Player> players, {int total: 0}) =>
-      players.map((player) => player.gamertag).join('\n') +
-      ((total > players.length) ? '\n+ ${total - players.length}' : '');
+  /// Generates an attachment representing a game.
+  Map _generateAttachment(
+          List<Game> games, int index, TZDateTime now, bool shouldFilter) =>
+      generateGameAttachment(games[index], now,
+          color: _COLORS[index % _COLORS.length], withActions: shouldFilter);
 }
