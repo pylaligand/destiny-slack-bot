@@ -56,7 +56,7 @@ Future<int> _createWeaponsDatabase(
           handleData: (lite.Row row, EventSink<Weapon> sink) {
     final json = JSON.decode(row['json']);
     final List<int> categories = json['itemCategoryHashes'];
-    if (categories.contains(1 /* weapon category */)) {
+    if (categories != null && categories.contains(1 /* weapon category */)) {
       final id = json['itemHash'];
       final name = json['itemName'];
       final type = WEAPON_TYPE_MAPPINGS[json['itemSubType']];
@@ -101,7 +101,7 @@ Future<int> _createArmorDatabase(
           handleData: (lite.Row row, EventSink<Armor> sink) {
     final json = JSON.decode(row['json']);
     final List<int> categories = json['itemCategoryHashes'];
-    if (categories.contains(20 /* armor category */)) {
+    if (categories != null && categories.contains(20 /* armor category */)) {
       final id = json['itemHash'];
       final name = json['itemName'];
       final clazz = CLASS_MAPPINGS[json['classType']];
