@@ -16,8 +16,11 @@ import 'utils/dates.dart' as dates;
 const _OPTION_HELP = 'help';
 const _OPTION_XBL = 'xbl';
 const _OPTION_PSN = 'psn';
+const _OPTION_FILTER = 'filter';
 
 const _COLORS = const ['#4285f4', '#f4b400', '#0f9d58', '#db4437'];
+
+enum _Platform { xbox, playstation, both }
 
 /// Exposes LFG functionality.
 class LfgHandler extends SlackCommandHandler {
@@ -28,15 +31,18 @@ class LfgHandler extends SlackCommandHandler {
     final params = request.context;
     final TheHundredClient theHundredClient = params[param.THE_HUNDRED_CLIENT];
     final SlackClient slackClient = params[param.SLACK_CLIENT];
-    final option = params[param.SLACK_TEXT];
+    final String options = params[param.SLACK_TEXT];
     final username = params[param.SLACK_USERNAME];
-    if (option == _OPTION_HELP) {
+    final optionList = options.split(new RegExp(r'\s+'));
+    if (optionList.first == _OPTION_HELP) {
       _log.info('@$username needs help');
       return createTextResponse('View upcoming gaming sessions', private: true);
     }
+    final shouldFilter = optionList.last == _OPTION_FILTER;
+    final platform = _extractPlatform(optionList.first);
     _log.info('@$username looking up games');
     final games =
-        _filterByPlatform(await theHundredClient.getAllGames(), option);
+        _filterByPlatform(await theHundredClient.getAllGames(), platform);
     _log.info('${games.length} game(s)');
     games.forEach(_log.info);
     if (games.isEmpty) {
@@ -49,28 +55,30 @@ class LfgHandler extends SlackCommandHandler {
         timezone != null ? getLocation(timezone) : theHundredClient.location;
     final now = new TZDateTime.now(location);
     final attachments = new Iterable.generate(games.length)
-        .map((index) => _generateAttachment(games, index, now))
+        .map((index) => _generateAttachment(games, index, now, shouldFilter))
         .toList();
     return createAttachmentsResponse(attachments);
   }
 
   /// Filters games by platform based on user input.
-  List<Game> _filterByPlatform(List<Game> games, String option) {
-    if (option == _OPTION_XBL) {
-      _log.info('Focusing on Xbox');
-      return games.where((game) => game.platform == Platform.xbox).toList();
-    } else if (option == _OPTION_PSN) {
-      _log.info('Focusing on Playstation');
-      return games
-          .where((game) => game.platform == Platform.playstation)
-          .toList();
-    } else {
-      return games;
+  List<Game> _filterByPlatform(List<Game> games, _Platform platform) {
+    switch (platform) {
+      case _Platform.xbox:
+        _log.info('Focusing on Xbox');
+        return games.where((game) => game.platform == Platform.xbox).toList();
+      case _Platform.playstation:
+        _log.info('Focusing on Playstation');
+        return games
+            .where((game) => game.platform == Platform.playstation)
+            .toList();
+      default:
+        return games;
     }
   }
 
   /// Generates an attachment representing a game.
-  Map _generateAttachment(List<Game> games, int index, TZDateTime now) {
+  Map _generateAttachment(
+      List<Game> games, int index, TZDateTime now, bool shouldFilter) {
     final game = games[index];
     final result = {};
     final date =
@@ -99,16 +107,30 @@ class LfgHandler extends SlackCommandHandler {
           'Reserves', _listPlayers(game.players.where(isReserve))));
     }
     result['fields'] = fields;
-    result['actions'] = [
-      {
-        'name': 'show_lfg_game',
-        'text': 'Show this game',
-        'type': 'button',
-        'value': index.toString()
-      }
-    ];
-    result['callback_id'] = 'lfg_gamez';
+    if (shouldFilter) {
+      result['actions'] = [
+        {
+          'name': 'show_lfg_game',
+          'text': 'Show this game',
+          'type': 'button',
+          'value': index.toString()
+        }
+      ];
+      result['callback_id'] = 'lfg_gamez';
+    }
     return result;
+  }
+
+  /// Identifies the targeted platform.
+  _Platform _extractPlatform(String option) {
+    switch (option) {
+      case _OPTION_XBL:
+        return _Platform.xbox;
+      case _OPTION_PSN:
+        return _Platform.playstation;
+      default:
+        return _Platform.both;
+    }
   }
 
   /// Generates a user-friendly string representing the given date.
