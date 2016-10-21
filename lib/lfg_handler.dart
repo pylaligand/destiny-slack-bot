@@ -55,7 +55,7 @@ class LfgHandler extends SlackCommandHandler {
     final attachments = new Iterable.generate(games.length)
         .map((index) => _generateAttachment(games, index, now, shouldFilter))
         .toList();
-    return createAttachmentsResponse(attachments, private: shouldFilter);
+    return createAttachmentsResponse(attachments);
   }
 
   /// Filters games by platform based on user input.
