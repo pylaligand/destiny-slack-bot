@@ -18,8 +18,6 @@ const _OPTION_XBL = 'xbl';
 const _OPTION_PSN = 'psn';
 const _OPTION_FILTER = 'filter';
 
-const _COLORS = const ['#4285f4', '#f4b400', '#0f9d58', '#db4437'];
-
 enum _Platform { xbox, playstation, both }
 
 /// Exposes LFG functionality.
@@ -92,5 +90,6 @@ class LfgHandler extends SlackCommandHandler {
   Map _generateAttachment(
           List<Game> games, int index, TZDateTime now, bool shouldFilter) =>
       generateGameAttachment(games[index], now,
-          color: _COLORS[index % _COLORS.length], withActions: shouldFilter);
+          color: ATTACHMENT_COLORS[index % ATTACHMENT_COLORS.length],
+          withActions: shouldFilter);
 }

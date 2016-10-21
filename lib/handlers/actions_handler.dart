@@ -84,7 +84,9 @@ class ActionsHandler extends Routeable {
             timezone != null ? getLocation(timezone) : the100Client.location;
         final now = new TZDateTime.now(location);
         return createAttachmentResponse(
-            generateGameAttachment(game, now, withActions: false));
+            generateGameAttachment(game, now,
+                color: ATTACHMENT_COLORS[0], withActions: false),
+            replace: false);
 
       default:
         _log.warning('Unknown action: $action ($value)');
