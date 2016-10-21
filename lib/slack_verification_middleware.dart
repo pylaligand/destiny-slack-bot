@@ -3,16 +3,14 @@
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
-import 'clients/slack_client.dart';
 import 'context_params.dart' as param;
 
 /// Verifies that requests come from Slack and makes the content of these
 /// requests more accessible to handlers.
-class SlackMiddleware {
-  static final _log = new Logger('SlackMiddleware');
+class SlackVerificationMiddleware {
+  static final _log = new Logger('SlackVerificationMiddleware');
 
-  static shelf.Middleware get(
-          List<String> tokens, bool useDelayedResponses, String authToken) =>
+  static shelf.Middleware get(List<String> tokens, bool useDelayedResponses) =>
       (shelf.Handler handler) {
         return (shelf.Request request) async {
           if (request.method != 'POST') {
@@ -32,7 +30,6 @@ class SlackMiddleware {
             return new shelf.Response.forbidden('Invalid token');
           }
           final Map<String, String> context = {
-            param.SLACK_CLIENT: new SlackClient(authToken),
             param.USE_DELAYED_RESPONSES: useDelayedResponses
           };
           params.forEach((key, value) => context['slack_param_$key'] = value);

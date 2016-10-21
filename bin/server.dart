@@ -16,7 +16,8 @@ import '../lib/grimoire_handler.dart';
 import '../lib/handlers/actions_handler.dart';
 import '../lib/lfg_handler.dart';
 import '../lib/online_handler.dart';
-import '../lib/slack_middleware.dart';
+import '../lib/slack_client_middleware.dart';
+import '../lib/slack_verification_middleware.dart';
 import '../lib/the_hundred_middleware.dart';
 import '../lib/trials_handler.dart';
 import '../lib/triumphs_handler.dart';
@@ -64,14 +65,15 @@ main() async {
   final baseMiddleware = const shelf.Pipeline()
       .addMiddleware(
           shelf.logRequests(logger: (String message, _) => log.info(message)))
+      .addMiddleware(
+          TheHundredMiddleWare.get(theHundredAuthToken, theHundredGroupId))
+      .addMiddleware(SlackClientMiddleware.get(slackAuthToken))
       .middleware;
 
   final commandMiddleware = const shelf.Pipeline()
       .addMiddleware(BungieMiddleWare.get(bungieApiKey, worldDatabase))
       .addMiddleware(
-          SlackMiddleware.get(slackTokens, useDelayedResponses, slackAuthToken))
-      .addMiddleware(
-          TheHundredMiddleWare.get(theHundredAuthToken, theHundredGroupId))
+          SlackVerificationMiddleware.get(slackTokens, useDelayedResponses))
       .middleware;
 
   final rootRouter = router()

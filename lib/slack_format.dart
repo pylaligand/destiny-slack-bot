@@ -20,18 +20,26 @@ shelf.Response createTextResponse(String content,
 }
 
 /// Creates a response object with some attachments.
-shelf.Response createAttachmentsResponse(List<Map> attachments) {
+shelf.Response createAttachmentsResponse(List<Map> attachments,
+    {bool private: false, bool replace: false}) {
   final json = new Map();
-  json['response_type'] = 'in_channel';
+  if (!private) {
+    json['response_type'] = 'in_channel';
+  }
   json['attachments'] = attachments;
+  if (replace) {
+    json['replace_original'] = true;
+  }
   final body = JSON.encode(json);
   final headers = {'content-type': 'application/json'};
   return new shelf.Response.ok(body, headers: headers);
 }
 
 /// Creates a response object with an attachment.
-shelf.Response createAttachmentResponse(Map attachment) {
-  return createAttachmentsResponse([attachment]);
+shelf.Response createAttachmentResponse(Map attachment,
+    {bool private: false, bool replace: false}) {
+  return createAttachmentsResponse([attachment],
+      private: private, replace: replace);
 }
 
 /// Creates a response object with an error message.

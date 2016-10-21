@@ -5,7 +5,6 @@
 const BUNGIE_CLIENT = 'bungie_client';
 const BUNGIE_DATABASE = 'bungie_database';
 const SLACK_CLIENT = 'slack_client';
-const SLACK_PAYLOAD = 'slack_param_payload';
 const SLACK_TEXT = 'slack_param_text';
 const SLACK_USER_ID = 'slack_param_user_id';
 const SLACK_USERNAME = 'slack_param_user_name';
