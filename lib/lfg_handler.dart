@@ -91,5 +91,6 @@ class LfgHandler extends SlackCommandHandler {
           List<Game> games, int index, TZDateTime now, bool shouldFilter) =>
       generateGameAttachment(games[index], now,
           color: ATTACHMENT_COLORS[index % ATTACHMENT_COLORS.length],
-          withActions: shouldFilter);
+          withActions: shouldFilter,
+          summary: shouldFilter);
 }

@@ -7,7 +7,7 @@ import '../the_hundred_client.dart';
 import 'dates.dart' as dates;
 
 Map generateGameAttachment(Game game, TZDateTime now,
-    {String color: null, bool withActions: true}) {
+    {String color: null, bool withActions: false, bool summary: false}) {
   final result = {};
   final date =
       _formatDate(new TZDateTime.from(game.startDate, now.location), now);
@@ -19,24 +19,26 @@ Map generateGameAttachment(Game game, TZDateTime now,
   result['title'] = game.title;
   result['title_link'] = game.url;
   result['text'] = game.description;
-  final isPlaying = (Player player) => !player.inReserve;
-  final fields = [
-    _createField('Creator', game.creator),
-    _createField('Platform', game.platformLabel),
-    _createField('Spots', (game.teamSize - game.playerCount).toString()),
-    _createField(
-        'Players',
-        game.players.any(isPlaying)
-            ? _listPlayers(game.players.where(isPlaying),
-                total: game.playerCount)
-            : 'none')
-  ];
-  final isReserve = (Player player) => player.inReserve;
-  if (game.players.any(isReserve)) {
-    fields.add(
-        _createField('Reserves', _listPlayers(game.players.where(isReserve))));
+  if (!summary) {
+    final isPlaying = (Player player) => !player.inReserve;
+    final fields = [
+      _createField('Creator', game.creator),
+      _createField('Platform', game.platformLabel),
+      _createField('Spots', (game.teamSize - game.playerCount).toString()),
+      _createField(
+          'Players',
+          game.players.any(isPlaying)
+              ? _listPlayers(game.players.where(isPlaying),
+                  total: game.playerCount)
+              : 'none')
+    ];
+    final isReserve = (Player player) => player.inReserve;
+    if (game.players.any(isReserve)) {
+      fields.add(_createField(
+          'Reserves', _listPlayers(game.players.where(isReserve))));
+    }
+    result['fields'] = fields;
   }
-  result['fields'] = fields;
   if (withActions) {
     result['actions'] = [
       {
