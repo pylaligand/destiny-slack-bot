@@ -46,7 +46,7 @@ class ActionsHandler extends Routeable {
     }
     final context = request.context;
     final Future<shelf.Response> responseFuture =
-        _generateResponse(content, context);
+        new Future(() => _generateResponse(content, context));
     if (context[param.USE_DELAYED_RESPONSES]) {
       responseFuture.then((response) async {
         if (response == null) {
@@ -83,10 +83,8 @@ class ActionsHandler extends Routeable {
         final location =
             timezone != null ? getLocation(timezone) : the100Client.location;
         final now = new TZDateTime.now(location);
-        return createAttachmentResponse(
-            generateGameAttachment(game, now,
-                color: ATTACHMENT_COLORS[0], withActions: false),
-            replace: false);
+        return createAttachmentResponse(generateGameAttachment(game, now,
+            color: ATTACHMENT_COLORS[0], withActions: false));
 
       default:
         _log.warning('Unknown action: $action ($value)');
