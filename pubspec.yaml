@@ -12,7 +12,7 @@ dependencies:
   postgresql: ^0.3.3
   shelf: ^0.6.5
   shelf_route: ^0.14.1
-  timezone: ^0.4.3
+  timezone: ^0.5.0-dev
 dev_dependencies:
   archive: ^1.0.25
   args: ^0.13.4
