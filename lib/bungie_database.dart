@@ -147,6 +147,7 @@ class BungieDatabase {
                 'SELECT * FROM ${BgDb.TABLE_ACTIVITY} WHERE ${BgDb.ACTIVITY_ID} = ${reference.id}')
             .first)
         .toMap();
+
     getOverride() async {
       if (reference.typeId == 0) {
         return null;
@@ -158,6 +159,7 @@ class BungieDatabase {
           .toMap();
       return columns[BgDb.ACTIVITY_TYPE_NAME];
     }
+
     final typeOverride = await getOverride();
     return new Activity(
         new ItemId(baseActivity[BgDb.ACTIVITY_ID]),
