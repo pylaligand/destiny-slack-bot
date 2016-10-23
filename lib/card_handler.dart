@@ -24,6 +24,7 @@ class CardHandler extends SlackCommandHandler {
       _log.info('@${params[param.SLACK_USERNAME]} needs help');
       return createTextResponse('Read a random grimoire card', private: true);
     }
+
     pickCard() async {
       final BungieDatabase database = params[param.BUNGIE_DATABASE];
       try {
@@ -37,6 +38,7 @@ class CardHandler extends SlackCommandHandler {
         database.close();
       }
     }
+
     final card = await pickCard();
     final String title = _unescape(card.title);
     final String text = _unescape(card.content);
