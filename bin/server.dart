@@ -14,6 +14,7 @@ import '../lib/bungie_middleware.dart';
 import '../lib/card_handler.dart';
 import '../lib/grimoire_handler.dart';
 import '../lib/handlers/actions_handler.dart';
+import '../lib/handlers/profile_handler.dart';
 import '../lib/lfg_handler.dart';
 import '../lib/online_handler.dart';
 import '../lib/slack_client_middleware.dart';
@@ -96,7 +97,8 @@ main() async {
                 ..addAll(new WeeklyHandler(), path: '/weekly')
                 ..addAll(new TriumphsHandler(), path: '/triumphs')
                 ..addAll(new LfgHandler(), path: '/lfg')
-                ..addAll(new WastedHandler(), path: '/wasted'),
+                ..addAll(new WastedHandler(), path: '/wasted')
+                ..addAll(new ProfileHandler(), path: '/profile'),
               path: '/commands',
               middleware: commandMiddleware),
         middleware: baseMiddleware);

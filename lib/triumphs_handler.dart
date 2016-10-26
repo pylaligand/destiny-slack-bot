@@ -44,8 +44,9 @@ class TriumphsHandler extends SlackCommandHandler {
     final progress = await client.getTriumphsProgress(id);
     if (progress != null) {
       _log.info('Progress is $progress%');
+      final url = client.getPlayerTriumphsUrl(id);
       return createTextResponse(
-          '$gamertag has completed *$progress%* of <https://www.bungie.net/en/Profile/Triumphs/${id.type}/${id.token}|Moments of Triumph>',
+          '$gamertag has completed *$progress%* of <$url|Moments of Triumph>',
           expandLinks: false);
     } else {
       _log.warning('Could not find progress...');
