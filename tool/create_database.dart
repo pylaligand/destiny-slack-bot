@@ -271,6 +271,19 @@ _inspectActivityTypes(lite.Database liteDb) async {
   });
 }
 
+/// Utility to list activity modes.
+//ignore: unused_element
+_inspectActivityModes(lite.Database liteDb) async {
+  await liteDb
+      .query('SELECT json FROM DestinyActivityModeDefinition')
+      .forEach((row) {
+    final json = JSON.decode(row['json']);
+    final name = json['modeName'];
+    final type = json['modeType'];
+    print('$name: $type');
+  });
+}
+
 main(List<String> args) async {
   final parser = new ArgParser()
     ..addOption(_FLAG_LITE_DB, help: 'Source SQLite database file')

@@ -42,7 +42,9 @@ class WeeklyHandler extends SlackCommandHandler {
     } finally {
       database.close();
     }
-    final fields = [
+    final content = {};
+    content['fallback'] = 'On the menu this week...';
+    content['fields'] = [
       _createField('Nightfall strike', nightfallStrike.name),
       _createField(
           'Nightfall modifiers', activities.nightfallModifiers.join(', ')),
@@ -54,7 +56,7 @@ class WeeklyHandler extends SlackCommandHandler {
       _createField('Heroic strikes modifiers',
           activities.heroicStrikeModifiers.join(', '))
     ];
-    return createAttachmentResponse({'fields': fields});
+    return createAttachmentResponse(content);
   }
 
   Map<String, String> _createField(String title, String value) {
