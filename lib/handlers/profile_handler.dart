@@ -65,6 +65,11 @@ class ProfileHandler extends SlackCommandHandler {
     content['fallback'] = 'Profile for ${player.gamertag}';
     content['fields'] = [
       _createField('Grimoire', profile.grimoire.toString()),
+      _createField(
+          'Characters',
+          profile.characters
+              .map((character) => getCharacterClassName(character.clazz))
+              .join(', ')),
       _createField('Wrath of Machine - Normal', '$womNormalCount completions'),
       _createField('Wrath of Machine - Hard', '$womHardCount completions'),
     ];
