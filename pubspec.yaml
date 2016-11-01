@@ -6,18 +6,18 @@ dependencies:
   bungie_client:
     git:
       url: https://github.com/pylaligand/dart-bungie-client.git
-      ref: 4ebf12f59d6a8f9f1ab527c26636ee4796c7bfdc
+      ref: bdbc90a8c250a6ebd051931a7895990780e279fe
   http: ^0.11.3+3
   logging: ^0.11.2
   postgresql: ^0.3.3
   shelf: ^0.6.5
   shelf_route: ^0.14.1
-  timezone: ^0.4.3
+  timezone: ^0.5.0-dev
 dev_dependencies:
   archive: ^1.0.25
   args: ^0.13.4
   mockito: ^0.11.0
   path: ^1.3.9
   quiver: '^0.21.0'
-  sqlite: ^0.4.0
+  sqlite: ^0.4.2
   test: ^0.12.13

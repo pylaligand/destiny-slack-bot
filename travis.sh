@@ -5,7 +5,6 @@ set -e
 
 dart_files="bin/*.dart lib/*.dart test/*.dart tool/*.dart"
 
-pub run sqlite:install --package-root .
 dartanalyzer --fatal-warnings --fatal-hints --fatal-lints $dart_files
 pub run test
 

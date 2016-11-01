@@ -4,6 +4,8 @@ import 'dart:convert';
 
 import 'package:shelf/shelf.dart' as shelf;
 
+const ATTACHMENT_COLORS = const ['#4285f4', '#f4b400', '#0f9d58', '#db4437'];
+
 /// Creates a response object with simple text content.
 shelf.Response createTextResponse(String content,
     {bool private: false, bool expandLinks: true}) {
@@ -20,18 +22,26 @@ shelf.Response createTextResponse(String content,
 }
 
 /// Creates a response object with some attachments.
-shelf.Response createAttachmentsResponse(List<Map> attachments) {
+shelf.Response createAttachmentsResponse(List<Map> attachments,
+    {bool private: false, bool replace: false}) {
   final json = new Map();
-  json['response_type'] = 'in_channel';
+  if (!private) {
+    json['response_type'] = 'in_channel';
+  }
   json['attachments'] = attachments;
+  if (replace) {
+    json['replace_original'] = true;
+  }
   final body = JSON.encode(json);
   final headers = {'content-type': 'application/json'};
   return new shelf.Response.ok(body, headers: headers);
 }
 
 /// Creates a response object with an attachment.
-shelf.Response createAttachmentResponse(Map attachment) {
-  return createAttachmentsResponse([attachment]);
+shelf.Response createAttachmentResponse(Map attachment,
+    {bool private: false, bool replace: false}) {
+  return createAttachmentsResponse([attachment],
+      private: private, replace: replace);
 }
 
 /// Creates a response object with an error message.

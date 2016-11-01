@@ -30,6 +30,7 @@ class XurHandler extends SlackCommandHandler {
       _log.info('Xur is wandering...');
       return createTextResponse('Xur is not available at the moment...');
     }
+
     lookUpItems() async {
       final BungieDatabase database = params[param.BUNGIE_DATABASE];
       await database.connect();
@@ -44,6 +45,7 @@ class XurHandler extends SlackCommandHandler {
         database.close();
       }
     }
+
     final items = await lookUpItems();
     _log.info('Items:');
     items.forEach((item) => _log.info(' - $item'));
