@@ -6,7 +6,7 @@ dependencies:
   bungie_client:
     git:
       url: https://github.com/pylaligand/dart-bungie-client.git
-      ref: bdbc90a8c250a6ebd051931a7895990780e279fe
+      ref: 91d9826d5dbbd6818aff4bd674da005745e08fea
   http: ^0.11.3+3
   logging: ^0.11.2
   postgresql: ^0.3.3
