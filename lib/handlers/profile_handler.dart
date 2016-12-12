@@ -6,6 +6,7 @@ import 'package:bungie_client/bungie_client.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
+import '../clients/destiny_trials_report_client.dart';
 import '../context_params.dart' as param;
 import '../slack_command_handler.dart';
 import '../slack_format.dart';
@@ -19,6 +20,8 @@ const _ID_RAID_WOM_HM = 1387993552;
 /// Exposes relevant data about a given player.
 class ProfileHandler extends SlackCommandHandler {
   final _log = new Logger('ProfileHandler');
+
+  final DestinyTrialsReportClient _dtrClient = new DestinyTrialsReportClient();
 
   @override
   Future<shelf.Response> handle(shelf.Request request) async {
@@ -59,6 +62,8 @@ class ProfileHandler extends SlackCommandHandler {
       womHardCount += womHard;
     });
 
+    final lighthouseCount = await _dtrClient.getLighthouseTripCount(id.token);
+
     final content = {};
     content['title'] = player.gamertag;
     content['title_link'] = client.getPlayerProfileUrl(id);
@@ -72,6 +77,7 @@ class ProfileHandler extends SlackCommandHandler {
               .join(', ')),
       _createField('Wrath of Machine - Normal', '$womNormalCount completions'),
       _createField('Wrath of Machine - Hard', '$womHardCount completions'),
+      _createField('Flawless Trials of Osiris', lighthouseCount.toString()),
     ];
     return createAttachmentResponse(content);
   }

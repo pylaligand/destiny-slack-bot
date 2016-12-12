@@ -2,8 +2,8 @@
 
 import 'dart:io';
 
-import 'package:bungie_client/bungie_client.dart';
 import 'package:args/args.dart';
+import 'package:bungie_client/bungie_client.dart';
 
 const _FLAG_API_KEY = 'api-key';
 
