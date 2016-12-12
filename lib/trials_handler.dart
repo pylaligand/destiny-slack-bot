@@ -8,10 +8,12 @@ import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import 'bungie_database.dart';
+import 'clients/destiny_trials_report_client.dart';
 import 'context_params.dart' as param;
 import 'guardian_gg_client.dart';
 import 'slack_command_handler.dart';
 import 'slack_format.dart';
+import 'utils/players.dart' as players;
 
 const _OPTION_HELP = 'help';
 
@@ -20,6 +22,7 @@ class TrialsHandler extends SlackCommandHandler {
   final _log = new Logger('TrialsHandler');
 
   final GuardianGgClient _guardianGgClient;
+  final DestinyTrialsReportClient _dtrClient = new DestinyTrialsReportClient();
 
   factory TrialsHandler() {
     return new TrialsHandler.withClient(new GuardianGgClient());
@@ -30,29 +33,30 @@ class TrialsHandler extends SlackCommandHandler {
   @override
   Future<shelf.Response> handle(shelf.Request request) async {
     final params = request.context;
-    final String gamertag = params[param.SLACK_TEXT];
+    final BungieClient client = params[param.BUNGIE_CLIENT];
+    final String userName = params[param.SLACK_USERNAME];
+    final String text = params[param.SLACK_TEXT];
 
-    if (gamertag == _OPTION_HELP) {
-      _log.info('@${params[param.SLACK_USERNAME]} needs help');
+    if (text == _OPTION_HELP) {
+      _log.info('@$userName needs help');
       return createTextResponse(
           'Inspect a given player\'s last fireteam in Trials of Osiris, along'
           ' with their stats and equipment',
           private: true);
     }
 
-    _log.info('@${params[param.SLACK_USERNAME]} looking up "$gamertag"');
-
     // Look up the Destiny ID.
-    final BungieClient client = params[param.BUNGIE_CLIENT];
-    final destinyId = await client.getDestinyId(gamertag);
-    if (destinyId == null) {
-      _log.warning('Player not found');
-      return createTextResponse(
-          'Cannot find player "$gamertag" on XBL or PSN...',
+    _log.info('@$userName looking up "$text"');
+    final player = await players.lookUp(client, userName, text);
+    final gamertag = player.gamertag;
+    if (!player.wasFound) {
+      _log.warning('Could not identify gamertag "$gamertag".');
+      return createTextResponse('Unable to identify "$gamertag"',
           private: true);
     }
+    final destinyId = player.id;
     final onXbox = destinyId.onXbox;
-    _log.info('Found id for "$gamertag": $destinyId (Xbox: $onXbox)');
+    _log.info('Found id $destinyId for $gamertag (Xbox: $onXbox)');
 
     // Get stats from guardian.gg.
     final guardians = await _guardianGgClient.getTrialsStats(destinyId.token);
@@ -85,7 +89,7 @@ class TrialsHandler extends SlackCommandHandler {
     }
     trialsGuardians.forEach((g) => _log.info(g));
 
-    return createTextResponse(_formatReport(trialsGuardians));
+    return createTextResponse(_formatReport(trialsGuardians, onXbox));
   }
 
   /// Returns the subclass last used by the given player, or null if it could
@@ -107,8 +111,7 @@ class TrialsHandler extends SlackCommandHandler {
   }
 
   /// Returns the formatted guardian list for display in a bot message.
-  static String _formatReport(List<_TrialsGuardian> guardians) {
-    const url = 'https://my.trials.report/ps';
+  String _formatReport(List<_TrialsGuardian> guardians, bool onXbox) {
     maxLength(Iterable<String> content) =>
         content.map((item) => item.length).reduce(math.max);
     final maxNameWidth = maxLength(guardians.map((guardian) => guardian.name));
@@ -124,7 +127,8 @@ class TrialsHandler extends SlackCommandHandler {
     // the user is on Xbox.
     final list = guardians.map((g) {
       final nameBlanks = maxNameWidth - g.name.length;
-      String result = '<$url/${g.name}|${g.name}>${''.padRight(nameBlanks)}'
+      final url = _dtrClient.getProfileUrl(g.name, onXbox);
+      String result = '<$url|${g.name}>${''.padRight(nameBlanks)}'
           '  ${g.elo.toString().padLeft(4)}'
           '  ${g.kd.toString().padRight(4, '0')}'
           '  ${g.subclass.padRight(maxSubclassWidth)}'
