@@ -50,6 +50,9 @@ yet.
 - Time "wasted" on Destiny
   - `/wasted`
   - view time spent playing Destiny according to [wastedondestiny.com](https://www.wastedondestiny.com)
+- Player profile
+  - `/profile`
+  - look up a player's career summary
 
 ## Notifications
 
