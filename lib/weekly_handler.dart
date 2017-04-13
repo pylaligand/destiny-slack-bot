@@ -36,9 +36,11 @@ class WeeklyHandler extends SlackCommandHandler {
     await database.connect();
     Activity nightfallStrike;
     Activity weeklyCrucible;
+    Activity weeklyRaid;
     try {
       nightfallStrike = await database.getActivity(activities.nightfall);
       weeklyCrucible = await database.getActivity(activities.cruciblePlaylist);
+      weeklyRaid = await database.getActivity(activities.raid);
     } finally {
       database.close();
     }
@@ -48,7 +50,8 @@ class WeeklyHandler extends SlackCommandHandler {
       _createField('Nightfall strike', nightfallStrike.name),
       _createField(
           'Nightfall modifiers', activities.nightfallModifiers.join(', ')),
-      _createField('King\'s Fall', activities.kingsFallChallenge),
+      _createField('Featured raid', weeklyRaid.name),
+      _createField('Raid modifiers', activities.raidModifiers.join(', ')),
       _createField('Court of Oryx Tier 3 boss', _getCooBoss()),
       _createField('Challenge of the Elders modifiers',
           activities.poeModifiers.join(', ')),
