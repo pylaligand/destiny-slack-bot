@@ -1,4 +1,8 @@
-# Destiny bot for Slack
+# Destiny bot for Slack - deprecated!
+
+***Destiny 2 is out, and the Slack bot is getting a new look as well!
+Check out [the new version](https://www.github.com/pylaligand/destiny2-slack-bot).***
+
 
 [![Build status](https://travis-ci.org/pylaligand/destiny-slack-bot.svg?branch=master)](https://travis-ci.org/pylaligand/destiny-slack-bot)
 
