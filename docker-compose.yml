@@ -1,0 +1,16 @@
+version: '2'
+services:
+  destiny-slack-bot:
+    image: "destiny-slack-bot"
+    build: .
+    links:
+      - postgres
+    env_file: ENV
+    ports:
+      - "9999:9999"
+
+  postgres:
+    image: postgres:9.3
+    ports:
+      - "5432:5432"
+    env_file: ENV
